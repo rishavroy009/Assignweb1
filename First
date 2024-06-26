@@ -4,24 +4,52 @@
 
 using json = nlohmann::json;
 
-int main() {
-    std::string filename;
-    std::cout << "Enter the JSON file name: ";
-    std::cin >> filename;
+void printKeysAndValues(const json& j) {
+    // To store keys and values
+    std::vector<std::string> keys;
+    std::vector<std::string> values;
 
-    std::ifstream file(filename);
-    json j;
-    file >> j;
-    file.close();
-
-    std::string keys, values;
-    for (auto& element : j.items()) {
-        keys += element.key + " ";
-        values += element.value.dump() + " ";
+    for (json::const_iterator it = j.begin(); it != j.end(); ++it) {
+        keys.push_back(it.key());
+        values.push_back(it.value().dump());
     }
 
-    std::cout << keys << std::endl;
-    std::cout << values << std::endl;
+    // Print keys
+    for (size_t i = 0; i < keys.size(); ++i) {
+        if (i != 0) std::cout << " ";
+        std::cout << keys[i];
+    }
+    std::cout << std::endl;
+
+    // Print values
+    for (size_t i = 0; i < values.size(); ++i) {
+        if (i != 0) std::cout << " ";
+        std::cout << values[i];
+    }
+    std::cout << std::endl;
+}
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <json_file>" << std::endl;
+        return 1;
+    }
+
+    std::ifstream jsonFile(argv[1]);
+    if (!jsonFile.is_open()) {
+        std::cerr << "Could not open the file!" << std::endl;
+        return 1;
+    }
+
+    json j;
+    try {
+        jsonFile >> j;
+    } catch (json::parse_error& e) {
+        std::cerr << "JSON parse error: " << e.what() << std::endl;
+        return 1;
+    }
+
+    printKeysAndValues(j);
 
     return 0;
 }
