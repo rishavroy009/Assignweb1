@@ -1,0 +1,38 @@
+
+#include <iostream>
+#include <fstream>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
+
+void printKeysAndValues(const json& j) {
+    for (auto it = j.begin(); it != j.end(); ++it) {
+        std::cout << it.key() << " ";
+    }
+    std::cout << std::endl;
+
+    for (auto it = j.begin(); it != j.end(); ++it) {
+        std::cout << it.value() << " ";
+    }
+    std::cout << std::endl;
+}
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <input-json-file>" << std::endl;
+        return 1;
+    }
+
+    std::ifstream inputFile(argv[1]);
+    if (!inputFile) {
+        std::cerr << "Error opening file: " << argv[1] << std::endl;
+        return 1;
+    }
+
+    json j;
+    inputFile >> j;
+
+    printKeysAndValues(j);
+
+    return 0;
+}
