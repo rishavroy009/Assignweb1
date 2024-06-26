@@ -1,32 +1,21 @@
 #include <iostream>
 #include <fstream>
-#include <nlohmann/json.hpp>
+#include <string>
+#include <pbnjson.hpp>
 
-using json = nlohmann::json;
+void printKeysAndValues(const pbnjson::JValue& json) {
+    std::string keys;
+    std::string values;
 
-void printKeysAndValues(const json& j) {
-    // To store keys and values
-    std::vector<std::string> keys;
-    std::vector<std::string> values;
-
-    for (json::const_iterator it = j.begin(); it != j.end(); ++it) {
-        keys.push_back(it.key());
-        values.push_back(it.value().dump());
+    for (pbnjson::JValue::KeyValue it : json.children()) {
+        if (!keys.empty()) keys += " ";
+        if (!values.empty()) values += " ";
+        keys += it.first.asString();
+        values += it.second.stringify();
     }
 
-    // Print keys
-    for (size_t i = 0; i < keys.size(); ++i) {
-        if (i != 0) std::cout << " ";
-        std::cout << keys[i];
-    }
-    std::cout << std::endl;
-
-    // Print values
-    for (size_t i = 0; i < values.size(); ++i) {
-        if (i != 0) std::cout << " ";
-        std::cout << values[i];
-    }
-    std::cout << std::endl;
+    std::cout << keys << std::endl;
+    std::cout << values << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -41,15 +30,16 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    json j;
-    try {
-        jsonFile >> j;
-    } catch (json::parse_error& e) {
-        std::cerr << "JSON parse error: " << e.what() << std::endl;
+    std::string jsonString((std::istreambuf_iterator<char>(jsonFile)), std::istreambuf_iterator<char>());
+    pbnjson::JDomParser parser;
+
+    if (!parser.parse(jsonString, pbnjson::JSchema::AllSchema())) {
+        std::cerr << "JSON parse error: " << parser.getError() << std::endl;
         return 1;
     }
 
-    printKeysAndValues(j);
+    pbnjson::JValue parsedJson = parser.getDom();
+    printKeysAndValues(parsedJson);
 
     return 0;
 }
