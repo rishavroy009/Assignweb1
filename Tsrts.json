@@ -1,0 +1,13 @@
+{
+    "id": "test",
+    "version": 1,
+    "names": ["foo", "goo"],
+    "perms": {
+        "test1": {
+            "allow": true
+        },
+        "test2": {
+            "allow": false
+        }
+    }
+}
