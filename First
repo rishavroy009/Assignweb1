@@ -1,69 +1,43 @@
 #include <iostream>
 #include <fstream>
-#include <set>
-#include <vector>
 #include <pbnjson.hpp>
+#include "json_reader.h"
 
-void traverseJson(const pbnjson::JValue& json, std::set<std::string>& keys, std::set<std::string>& values) {
-    for (auto it = json.begin(); it != json.end(); ++it) {
-        keys.insert(it.key().asString());
-        if (it.value().isObject()) {
-            traverseJson(it.value(), keys, values);
-        } else if (it.value().isArray()) {
-            for (const auto& item : it.value().items()) {
-                if (item.isObject() || item.isArray()) {
-                    traverseJson(item, keys, values);
-                } else {
-                    values.insert(item.stringify());
-                }
-            }
-        } else {
-            values.insert(it.value().stringify());
-        }
-    }
-}
-
-void printKeysAndValues(const pbnjson::JValue& json) {
-    std::set<std::string> keys;
-    std::set<std::string> values;
-
-    traverseJson(json, keys, values);
-
-    // Print keys
-    for (const auto& key : keys) {
-        std::cout << key << " ";
-    }
-    std::cout << std::endl;
-
-    // Print values
-    for (const auto& value : values) {
-        std::cout << value << " ";
-    }
-    std::cout << std::endl;
-}
-
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " <json_file>" << std::endl;
         return 1;
     }
 
-    std::ifstream jsonFile(argv[1]);
-    if (!jsonFile.is_open()) {
-        std::cerr << "Could not open the file!" << std::endl;
+    const char* json_file = argv[1];
+    std::ifstream file(json_file);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file: " << json_file << std::endl;
         return 1;
     }
 
-    std::string jsonString((std::istreambuf_iterator<char>(jsonFile)), std::istreambuf_iterator<char>());
     pbnjson::JDomParser parser;
-
-    if (!parser.parse(jsonString, pbnjson::JSchema::AllSchema())) {
-        std::cerr << "JSON parse error: " << parser.getError() << std::endl;
+    if (!parser.parseFile(json_file, pbnjson::JSchema::AllSchema())) {
+        std::cerr << "Failed to parse JSON file." << std::endl;
         return 1;
     }
 
-    pbnjson::JValue parsedJson = parser.getDom();
-    printKeysAndValues(parsedJson);
+    pbnjson::JValue root = parser.getDom();
+    std::vector<std::string> keys;
+    std::vector<std::string> values;
+    collectJsonData(root, keys, values);
+
+    std::cout << "Keys: ";
+    for (const auto &key : keys) {
+        std::cout << key << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Values: ";
+    for (const auto &value : values) {
+        std::cout << value << " ";
+    }
+    std::cout << std::endl;
 
     return 0;
 }
