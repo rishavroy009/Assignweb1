@@ -5,10 +5,16 @@ set(CMAKE_CXX_STANDARD 14)
 
 # Specify the path to libpbnjson
 set(PBNJSON_INCLUDE_DIR "/path/to/webos-tv-desktop/libpbnjson/include")
+set(PBNJSON_LIBRARY_DIR "/path/to/webos-tv-desktop/libpbnjson/build/lib")
 
-include_directories(${PBNJSON_INCLUDE_DIR})
+# Include GLib headers
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GLIB REQUIRED glib-2.0)
+
+include_directories(${PBNJSON_INCLUDE_DIR} ${GLIB_INCLUDE_DIRS})
+link_directories(${PBNJSON_LIBRARY_DIR} ${GLIB_LIBRARY_DIRS})
 include_directories(include)  # Include header files directory
 
 add_executable(webos-service src/main.cpp src/json_reader.cpp)
 
-target_link_libraries(webos-service pbnjson_cpp)
+target_link_libraries(webos-service pbnjson_cpp ${GLIB_LIBRARIES})
