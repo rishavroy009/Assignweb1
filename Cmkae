@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.10)
+project(WebOSJsonReader)
+
+set(CMAKE_CXX_STANDARD 14)
+
+# Specify the path to libpbnjson
+set(PBNJSON_DIR "/path/to/libpbnjson")
+
+include_directories(${PBNJSON_DIR}/include)
+link_directories(${PBNJSON_DIR}/lib)
+include_directories(include)  # Include header files directory
+
+add_executable(webos-service src/main.cpp src/json_reader.cpp)
+
+target_link_libraries(webos-service pbnjson_cpp)
