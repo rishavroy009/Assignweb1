@@ -5,11 +5,11 @@ void collectJsonData(const pbnjson::JValue &value, std::vector<std::string> &key
     if (value.isObject()) {
         for (const auto &key : value.children()) {
             keys.push_back(key.first.asString());
-            collectJsonData(key.second, keys, values); // Recursive call
+            collectJsonData(key.second, keys, values); // Recursive call for nested objects or arrays
         }
     } else if (value.isArray()) {
         for (const auto &element : value.items()) {
-            collectJsonData(element, keys, values); // Recursive call
+            collectJsonData(element, keys, values); // Recursive call for array elements
         }
     } else {
         values.push_back(value.stringify()); // Assuming stringify() is const
