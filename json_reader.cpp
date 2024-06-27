@@ -1,6 +1,7 @@
 #include "json_reader.h"
 #include <iostream>
 #include <fstream>
+#include <pbnjson.hpp>
 
 void parseJsonValue(const pbnjson::JValue& value, std::ostream& output) {
     if (value.isObject()) {
