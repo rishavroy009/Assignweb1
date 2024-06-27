@@ -17,7 +17,7 @@ void parseJson(const std::string& filename) {
 
     pbnjson::JValue root = parser.getDom();
 
-    // Function to recursively parse and print keys and values
+    // Function to recursively print keys and values
     std::function<void(const pbnjson::JValue&, const std::string&)> printKeysValues =
         [&](const pbnjson::JValue& value, const std::string& prefix = "") {
             if (value.isObject()) {
