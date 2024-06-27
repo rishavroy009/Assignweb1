@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
-project(WebOSJsonReader)
+project(JsonParser)
 
 set(CMAKE_CXX_STANDARD 14)
 
 # Specify the path to libpbnjson
-set(PBNJSON_INCLUDE_DIR "/path/to/webos-tv-desktop/libpbnjson/include")
-set(PBNJSON_LIBRARY_DIR "/path/to/webos-tv-desktop/libpbnjson/build/src/pbnjson_cxx")
+set(PBNJSON_INCLUDE_DIR "/path/to/libpbnjson/include")
+set(PBNJSON_LIBRARY_DIR "/path/to/libpbnjson/lib")
 
 # Find and include the necessary packages
 find_package(PkgConfig REQUIRED)
@@ -16,7 +16,7 @@ link_directories(${PBNJSON_LIBRARY_DIR} ${GLIB_LIBRARY_DIRS})
 include_directories(include)  # Include header files directory
 
 # Add executable
-add_executable(webos-service main.cpp)
+add_executable(json-parser main.cpp)
 
 # Link against libpbnjson_cpp and GLib libraries
-target_link_libraries(webos-service pbnjson_cpp ${GLIB_LIBRARIES})
+target_link_libraries(json-parser pbnjson_cpp ${GLIB_LIBRARIES})
