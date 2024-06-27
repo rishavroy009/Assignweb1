@@ -1,43 +1,13 @@
-#include <iostream>
-#include <fstream>
-#include <pbnjson.hpp>
 #include "json_reader.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " <json_file>" << std::endl;
         return 1;
     }
 
-    const char* json_file = argv[1];
-    std::ifstream file(json_file);
-    if (!file.is_open()) {
-        std::cerr << "Failed to open file: " << json_file << std::endl;
-        return 1;
-    }
-
-    pbnjson::JDomParser parser;
-    if (!parser.parseFile(json_file, pbnjson::JSchema::AllSchema())) {
-        std::cerr << "Failed to parse JSON file." << std::endl;
-        return 1;
-    }
-
-    pbnjson::JValue root = parser.getDom();
-    std::vector<std::string> keys;
-    std::vector<std::string> values;
-    collectJsonData(root, keys, values);
-
-    std::cout << "Keys: ";
-    for (const auto &key : keys) {
-        std::cout << key << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "Values: ";
-    for (const auto &value : values) {
-        std::cout << value << " ";
-    }
-    std::cout << std::endl;
+    const std::string json_file = argv[1];
+    parseJson(json_file);
 
     return 0;
 }
