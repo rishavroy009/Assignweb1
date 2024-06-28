@@ -10,8 +10,14 @@ include(FindPkgConfig)
 # Find libpbnjson
 pkg_check_modules(PBNJSON REQUIRED pbnjson_cpp)
 
-include_directories(${PBNJSON_INCLUDE_DIRS})
-link_directories(${PBNJSON_LIBRARY_DIRS})
+# Set path to libpbnjson headers
+set(LIBPBNJSON_INCLUDE_DIR /path/to/libpbnjson/include/public)  # Replace with your actual path
 
+# Include directories
+include_directories(${PBNJSON_INCLUDE_DIRS} ${LIBPBNJSON_INCLUDE_DIR})
+
+# Source files
 add_executable(JsonReader src/main.cpp)
+
+# Link against libpbnjson
 target_link_libraries(JsonReader ${PBNJSON_LIBRARIES})
