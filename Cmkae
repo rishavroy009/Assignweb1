@@ -1,1 +1,1 @@
-export PKG_CONFIG_PATH=/home/Rishav/webos-tv-desktop/staging/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+pkg-config --define-variable=prefix=/usr/local --modversion pbnjson_cpp
