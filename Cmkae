@@ -1,26 +1,44 @@
-cmake_minimum_required(VERSION 3.10)
-project(JsonReader)
+#include <iostream>
+#include <fstream>
+#include <pbnjson.hpp>
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+void printKeysAndValues(const pbnjson::JValue& json) {
+    std::string keys;
+    std::string values;
 
-# Include FindPkgConfig to use pkg-config
-include(FindPkgConfig)
+    for (auto it = json.begin(); it != json.end(); ++it) {
+        if (!keys.empty()) keys += " ";
+        if (!values.empty()) values += " ";
+        keys += it.key().asString();
+        values += it.value().stringify();
+    }
 
-# Find libpbnjson using pkg-config
-pkg_check_modules(PBNJSON REQUIRED pbnjson_cpp)
+    std::cout << keys << std::endl;
+    std::cout << values << std::endl;
+}
 
-# Set path to libpbnjson headers if not found by pkg-config
-set(LIBPBNJSON_INCLUDE_DIR /path/to/libpbnjson/include/public)  # Replace with your actual path
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <json_file>" << std::endl;
+        return 1;
+    }
 
-# Set path to libpbnjson libraries
-link_directories(/home/Rishav/webos-tv-desktop/staging/use/lib)  # Replace with your actual path
+    std::ifstream jsonFile(argv[1]);
+    if (!jsonFile.is_open()) {
+        std::cerr << "Could not open the file!" << std::endl;
+        return 1;
+    }
 
-# Include directories
-include_directories(${PBNJSON_INCLUDE_DIRS} ${LIBPBNJSON_INCLUDE_DIR})
+    std::string jsonString((std::istreambuf_iterator<char>(jsonFile)), std::istreambuf_iterator<char>());
+    pbnjson::JDomParser parser;
 
-# Source files
-add_executable(JsonReader src/main.cpp)
+    if (!parser.parse(jsonString, pbnjson::JSchema::AllSchema())) {
+        std::cerr << "JSON parse error: " << parser.getError() << std::endl;
+        return 1;
+    }
 
-# Link against libpbnjson
-target_link_libraries(JsonReader ${PBNJSON_LIBRARIES} pbnjson_cpp)
+    pbnjson::JValue parsedJson = parser.getDom();
+    printKeysAndValues(parsedJson);
+
+    return 0;
+}
