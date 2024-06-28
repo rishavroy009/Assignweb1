@@ -1,18 +1,17 @@
 cmake_minimum_required(VERSION 3.10)
-project(webos-service)
+project(JsonReader)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Locate libpbnjson using pkg-config
-find_package(PkgConfig REQUIRED)
+# Include FindPkgConfig to use pkg-config
+include(FindPkgConfig)
+
+# Find libpbnjson
 pkg_check_modules(PBNJSON REQUIRED pbnjson_cpp)
 
-# Include directories for libpbnjson
 include_directories(${PBNJSON_INCLUDE_DIRS})
+link_directories(${PBNJSON_LIBRARY_DIRS})
 
-# Source files
-add_executable(webos-service src/main.cpp)
-
-# Link against libpbnjson
-target_link_libraries(webos-service ${PBNJSON_LIBRARIES})
+add_executable(JsonReader src/main.cpp)
+target_link_libraries(JsonReader ${PBNJSON_LIBRARIES})
