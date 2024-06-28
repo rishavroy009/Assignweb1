@@ -1,0 +1,65 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <set>
+#include <pbnjson.hpp>
+
+void collectKeysValues(const pbnjson::JValue& value, std::set<std::string>& keys, std::vector<std::string>& values) {
+    if (value.isObject()) {
+        for (const auto& key : value.children()) {
+            keys.insert(key.first.asString());
+            collectKeysValues(key.second, keys, values);
+        }
+    } else if (value.isArray()) {
+        for (const auto& element : value.items()) {
+            collectKeysValues(element, keys, values);
+        }
+    } else {
+        values.push_back(value.asString());
+    }
+}
+
+void parseJson(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return;
+    }
+
+    pbnjson::JDomParser parser;
+    if (!parser.parseFile(filename.c_str(), pbnjson::JSchema::AllSchema())) {
+        std::cerr << "Failed to parse JSON file: " << filename << std::endl;
+        return;
+    }
+
+    const pbnjson::JValue& root = parser.getDom();
+
+    std::set<std::string> keys;
+    std::vector<std::string> values;
+
+    collectKeysValues(root, keys, values);
+
+    std::cout << "Keys: ";
+    for (const auto& key : keys) {
+        std::cout << key << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Values: ";
+    for (const auto& value : values) {
+        std::cout << value << " ";
+    }
+    std::cout << std::endl;
+}
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <json_file>" << std::endl;
+        return 1;
+    }
+
+    const std::string json_file = argv[1];
+    parseJson(json_file);
+
+    return 0;
+}
