@@ -7,11 +7,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Include FindPkgConfig to use pkg-config
 include(FindPkgConfig)
 
-# Find libpbnjson
+# Find libpbnjson using pkg-config
 pkg_check_modules(PBNJSON REQUIRED pbnjson_cpp)
 
-# Set path to libpbnjson headers
+# Set path to libpbnjson headers if not found by pkg-config
 set(LIBPBNJSON_INCLUDE_DIR /path/to/libpbnjson/include/public)  # Replace with your actual path
+
+# Set path to libpbnjson libraries
+link_directories(/home/Rishav/webos-tv-desktop/staging/use/lib)  # Replace with your actual path
 
 # Include directories
 include_directories(${PBNJSON_INCLUDE_DIRS} ${LIBPBNJSON_INCLUDE_DIR})
@@ -20,4 +23,4 @@ include_directories(${PBNJSON_INCLUDE_DIRS} ${LIBPBNJSON_INCLUDE_DIR})
 add_executable(JsonReader src/main.cpp)
 
 # Link against libpbnjson
-target_link_libraries(JsonReader ${PBNJSON_LIBRARIES})
+target_link_libraries(JsonReader ${PBNJSON_LIBRARIES} pbnjson_cpp)
