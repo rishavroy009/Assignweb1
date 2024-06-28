@@ -2,25 +2,40 @@
 #include <fstream>
 #include <pbnjson.hpp>
 
-void printKeysAndValues(const pbnjson::JValue& json) {
-    if (!json.isObject()) {
-        std::cerr << "JSON is not an object!" << std::endl;
+void parseJson(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file: " << filename << std::endl;
         return;
     }
 
-    // Print keys
-    std::cout << "Keys: ";
-    for (const auto& key : json.children()) {
-        std::cout << key.first << " ";
+    pbnjson::JDomParser parser;
+    if (!parser.parseFile(filename.c_str(), pbnjson::JSchema::AllSchema())) {
+        std::cerr << "Failed to parse JSON file: " << filename << std::endl;
+        return;
     }
-    std::cout << std::endl;
 
-    // Print values
-    std::cout << "Values: ";
-    for (const auto& key : json.children()) {
-        std::cout << key.second.stringify() << " ";
-    }
-    std::cout << std::endl;
+    const pbnjson::JValue& root = parser.getDom();
+
+    // Function to recursively print keys and values
+    std::function<void(const pbnjson::JValue&, const std::string&)> printKeysValues =
+        [&](const pbnjson::JValue& value, const std::string& prefix) {
+            if (value.isObject()) {
+                for (const auto& key : value.children()) {
+                    printKeysValues(key.second, prefix + key.first.asString() + ".");
+                }
+            } else if (value.isArray()) {
+                int index = 0;
+                for (const auto& element : value.items()) {
+                    printKeysValues(element, prefix + std::to_string(index++) + ".");
+                }
+            } else {
+                std::cout << prefix << ": " << value.asString() << std::endl;
+            }
+        };
+
+    // Start parsing from the root
+    printKeysValues(root, "");
 }
 
 int main(int argc, char* argv[]) {
@@ -29,24 +44,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::ifstream jsonFile(argv[1]);
-    if (!jsonFile.is_open()) {
-        std::cerr << "Could not open the file!" << std::endl;
-        return 1;
-    }
-
-    std::string jsonString((std::istreambuf_iterator<char>(jsonFile)), std::istreambuf_iterator<char>());
-    pbnjson::JDomParser parser;
-
-    if (!parser.parse(jsonString, pbnjson::JSchema::AllSchema())) {
-        std::cerr << "JSON parse error: " << parser.getError() << std::endl;
-        return 1;
-    }
-
-    pbnjson::JValue parsedJson = parser.getDom();
-
-    // Call function to print keys and values
-    printKeysAndValues(parsedJson);
+    const std::string json_file = argv[1];
+    parseJson(json_file);
 
     return 0;
 }
