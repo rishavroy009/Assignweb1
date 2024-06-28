@@ -3,18 +3,24 @@
 #include <pbnjson.hpp>
 
 void printKeysAndValues(const pbnjson::JValue& json) {
-    std::string keys;
-    std::string values;
-
-    for (auto it = json.begin(); it != json.end(); ++it) {
-        if (!keys.empty()) keys += " ";
-        if (!values.empty()) values += " ";
-        keys += it.key().asString();
-        values += it.value().stringify();
+    if (!json.isObject()) {
+        std::cerr << "JSON is not an object!" << std::endl;
+        return;
     }
 
-    std::cout << keys << std::endl;
-    std::cout << values << std::endl;
+    // Print keys
+    std::cout << "Keys: ";
+    for (const auto& key : json.children()) {
+        std::cout << key.first << " ";
+    }
+    std::cout << std::endl;
+
+    // Print values
+    std::cout << "Values: ";
+    for (const auto& key : json.children()) {
+        std::cout << key.second.stringify() << " ";
+    }
+    std::cout << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -38,6 +44,8 @@ int main(int argc, char* argv[]) {
     }
 
     pbnjson::JValue parsedJson = parser.getDom();
+
+    // Call function to print keys and values
     printKeysAndValues(parsedJson);
 
     return 0;
