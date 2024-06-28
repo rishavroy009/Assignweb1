@@ -1,51 +1,46 @@
 #include <iostream>
 #include <fstream>
-#include <pbnjson.hpp>
+#include <pbnjson.hpp> // Include the pbnjson header
 
-void parseJson(const std::string& filename) {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        std::cerr << "Failed to open file: " << filename << std::endl;
-        return;
-    }
-
-    pbnjson::JDomParser parser;
-    if (!parser.parseFile(filename.c_str(), pbnjson::JSchema::AllSchema())) {
-        std::cerr << "Failed to parse JSON file: " << filename << std::endl;
-        return;
-    }
-
-    pbnjson::JValue root = parser.getDom();
-
-    // Function to recursively print keys and values
-    std::function<void(const pbnjson::JValue&, const std::string&)> printKeysValues =
-        [&](const pbnjson::JValue& value, const std::string& prefix = "") {
-            if (value.isObject()) {
-                for (const auto& key : value.children()) {
-                    printKeysValues(key.second, prefix + key.first.asString() + ".");
-                }
-            } else if (value.isArray()) {
-                int index = 0;
-                for (const auto& element : value.items()) {
-                    printKeysValues(element, prefix + std::to_string(index++) + ".");
-                }
-            } else {
-                std::cout << prefix << ": " << value.stringify() << std::endl;
-            }
-        };
-
-    // Start parsing from the root
-    printKeysValues(root);
-}
+using namespace std;
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <json_file>" << std::endl;
+    if (argc < 2) {
+        cerr << "Usage: " << argv[0] << " <json_file>" << endl;
         return 1;
     }
 
-    const std::string json_file = argv[1];
-    parseJson(json_file);
+    const char* json_file = argv[1];
+
+    // Initialize the JSON parser
+    pbnjson::JDomParser parser;
+    std::string error;
+
+    // Read the JSON file
+    ifstream file(json_file);
+    if (!file.is_open()) {
+        cerr << "Failed to open JSON file: " << json_file << endl;
+        return 1;
+    }
+
+    // Parse the JSON content
+    if (!parser.parse(file, pbnjson::JSchemaFragment("{}"), &error)) {
+        cerr << "Failed to parse JSON: " << error << endl;
+        return 1;
+    }
+
+    // Get the root of the parsed JSON
+    pbnjson::JValue root = parser.getDom();
+
+    // Iterate over the JSON object to print keys and values
+    if (root.isObject()) {
+        for (auto& key : root.children()) {
+            cout << "Key: " << key.first.asString() << ", Value: " << key.second.asString() << endl;
+        }
+    } else {
+        cerr << "Root element is not an object!" << endl;
+        return 1;
+    }
 
     return 0;
 }
