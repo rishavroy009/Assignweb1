@@ -2,6 +2,21 @@
 #include <fstream>
 #include <pbnjson.hpp>
 
+void printJson(const pbnjson::JValue& value) {
+    if (value.isObject()) {
+        for (const auto& key : value.children()) {
+            std::cout << "Key: " << key.first.asString() << std::endl;
+            printJson(key.second);
+        }
+    } else if (value.isArray()) {
+        for (const auto& element : value.items()) {
+            printJson(element);
+        }
+    } else {
+        std::cout << "Value: " << value.stringify() << std::endl;
+    }
+}
+
 void parseJson(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -16,26 +31,7 @@ void parseJson(const std::string& filename) {
     }
 
     const pbnjson::JValue& root = parser.getDom();
-
-    // Function to recursively print keys and values
-    std::function<void(const pbnjson::JValue&, const std::string&)> printKeysValues =
-        [&](const pbnjson::JValue& value, const std::string& prefix) {
-            if (value.isObject()) {
-                for (const auto& key : value.children()) {
-                    printKeysValues(key.second, prefix + key.first.asString() + ".");
-                }
-            } else if (value.isArray()) {
-                int index = 0;
-                for (const auto& element : value.items()) {
-                    printKeysValues(element, prefix + std::to_string(index++) + ".");
-                }
-            } else {
-                std::cout << prefix << ": " << value.asString() << std::endl;
-            }
-        };
-
-    // Start parsing from the root
-    printKeysValues(root, "");
+    printJson(root);
 }
 
 int main(int argc, char* argv[]) {
