@@ -1,0 +1,1 @@
+sudo -E nsenter --mount=/proc/1774/ns/mnt --uts=/proc/1774/ns/uts --ipc=/proc/1774/ns/ipc --net=/proc/1774/ns/net --pid=/proc/1774/ns/pid runuser -p -l $USER -c "exec $SHELL"
