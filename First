@@ -1,13 +1,19 @@
-#include "json_reader.h"
+// ptag is the specific <p> element within which you want to apply the padding inheritance
+function inheritPaddingFromP(ptag) {
+    // Select all <span> elements that are descendants of the specified <p> tag
+    const spanElements = ptag.querySelectorAll('span');
 
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <json_file>" << std::endl;
-        return 1;
-    }
+    // Get the computed padding styles of the <p> tag
+    const pPadding = window.getComputedStyle(ptag).padding;
 
-    const std::string json_file = argv[1];
-    parseJson(json_file);
-
-    return 0;
+    spanElements.forEach((span) => {
+        // Check if the <span> contains only the zero-width space, represented by '&#x200b;'
+        if (span.innerHTML.trim() === '&#x200b;' || span.textContent.trim() === '\u200b') {
+            // Apply the padding style of the <p> tag to the <span>
+            span.style.padding = pPadding;
+        }
+    });
 }
+
+// Example usage: call the function with the specific <p> tag element
+inheritPaddingFromP(ptag);
