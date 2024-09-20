@@ -1,19 +1,33 @@
-// ptag is the specific <p> element within which you want to apply the padding inheritance
-function inheritPaddingFromP(ptag) {
-    // Select all <span> elements that are descendants of the specified <p> tag
-    const spanElements = ptag.querySelectorAll('span');
+#include <iostream>
+#include <string>
+#include <npapi.h> // Assuming NPAPI is being used
 
-    // Get the computed padding styles of the <p> tag
-    const pPadding = window.getComputedStyle(ptag).padding;
+bool WebBindings::Set(NPP npp, NPObject* object, NPIdentifier identifier, const NPVariant* value) {
+    // Log when the function is called
+    std::cout << "WebBindings::Set called" << std::endl;
+    
+    // Check if the identifier represents the 'width' property
+    char* propertyName = NPN_UTF8FromIdentifier(identifier); // Converts NPIdentifier to string
 
-    spanElements.forEach((span) => {
-        // Check if the <span> contains only the zero-width space, represented by '&#x200b;'
-        if (span.innerHTML.trim() === '&#x200b;' || span.textContent.trim() === '\u200b') {
-            // Apply the padding style of the <p> tag to the <span>
-            span.style.padding = pPadding;
+    if (propertyName) {
+        std::cout << "Property being set: " << propertyName << std::endl;
+        
+        // Check if the property is 'width'
+        if (std::string(propertyName) == "width") {
+            std::cout << "'width' property is being set" << std::endl;
+
+            // Log the value being set, assuming it's a numeric type
+            if (value->type == NPVariantType_Int32) {
+                std::cout << "Setting 'width' to: " << value->value.intValue << std::endl;
+            } else if (value->type == NPVariantType_Double) {
+                std::cout << "Setting 'width' to: " << value->value.doubleValue << std::endl;
+            } else if (value->type == NPVariantType_String) {
+                std::cout << "Setting 'width' to: " << std::string(value->value.stringValue.UTF8Characters, value->value.stringValue.UTF8Length) << std::endl;
+            } else {
+                std::cout << "Unknown type for 'width' property" << std::endl;
+            }
         }
-    });
-}
+    }
 
-// Example usage: call the function with the specific <p> tag element
-inheritPaddingFromP(ptag);
+    return true; // Proceed with the rest of the function
+}
