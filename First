@@ -1,25 +1,101 @@
-Digital Rights Management (DRM) refers to a set of technologies and policies used to control how digital content is used and distributed. It protects copyright holders by preventing unauthorized copying, sharing, and distribution of digital media. DRM is widely used in various content types, including music, movies, eBooks, and software.
+ClearKey is a straightforward and open-source digital rights management (DRM) solution that allows for easy key provisioning without requiring a license server. Here’s a detailed guide on how to implement ClearKey using Encrypted Media Extensions (EME).
 
-Why is DRM Important?
-Content Protection: DRM helps safeguard intellectual property, ensuring that creators receive fair compensation for their work.
-Revenue Generation: By restricting unauthorized access, DRM enables content providers to monetize their offerings effectively.
-User Control: DRM allows content providers to set specific usage rights, such as viewing duration, device limits, and download restrictions.
-Common DRM Technologies
-Encryption: Content is encrypted, and only authorized users can access the decryption keys.
-License Management: A license file contains the rights associated with the content, which the user must obtain to access it.
-Device Authentication: DRM systems often authenticate devices to ensure only approved hardware can access the content.
-How Does DRM Work?
-DRM typically involves the following steps:
+Step-by-Step Setup
+HTML Setup: Create a simple HTML page with a video element to play the DRM-protected content.
+html
+Copy code
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearKey DRM Example</title>
+</head>
+<body>
+    <h1>ClearKey DRM Example</h1>
+    <video id="video" controls width="600">
+        <source src="path/to/your/video.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+    <script src="script.js"></script>
+</body>
+</html>
+JavaScript Implementation: In a separate JavaScript file (script.js), write the code to set up the ClearKey implementation.
+javascript
+Copy code
+// script.js
 
-Content Preparation: The content is encrypted, and a license file is created.
-License Server: When a user attempts to access the content, the DRM system checks whether the user is authorized.
-Key Provisioning: If authorized, the system provides the necessary decryption keys or licenses to the user's device.
-Content Playback: The user can access and view the content according to the permissions granted.
-Key DRM Standards
-Widevine: Developed by Google, widely used in streaming services like Netflix and YouTube.
-PlayReady: Developed by Microsoft, commonly used in Windows and Xbox platforms.
-ClearKey: An open-source DRM solution that allows for easy key provisioning without requiring a license server.
-Challenges of DRM
-User Experience: Some users find DRM restrictions cumbersome, leading to frustration and abandonment of content.
-Compatibility Issues: Different DRM technologies may not work across all devices and platforms.
-Circumvention: Skilled users may find ways to bypass DRM protections, undermining its effectiveness.
+// Define the ClearKey key system
+const keySystem = 'urn:uuid:9b2b663c-0a0c-4a8a-bb00-4d8c66c7f6f1'; // ClearKey Key System
+const video = document.getElementById('video'); // Get the video element
+
+// Request MediaKeySystemAccess
+navigator.requestMediaKeySystemAccess(keySystem, [{
+    initDataTypes: ['cenc'], // Specify initialization data types
+    videoCapabilities: [{ contentType: 'video/mp4; codecs="avc1.64001F"' }] // Supported codecs
+}])
+.then(mediaKeySystemAccess => {
+    // Create MediaKeys object
+    return mediaKeySystemAccess.createMediaKeys();
+})
+.then(mediaKeys => {
+    // Set media keys for the video element
+    return video.setMediaKeys(mediaKeys);
+})
+.then(() => {
+    // Create a new MediaKeySession
+    const mediaKeySession = video.mediaKeys.createSession();
+
+    // Define the initialization data (in this example, it's typically obtained from your MPD or MP4 file)
+    const initData = new Uint8Array([/* Your initialization data goes here */]);
+
+    // Generate a key request
+    return mediaKeySession.generateRequest('cenc', initData);
+})
+.then(() => {
+    console.log("Key request sent.");
+})
+.catch(error => {
+    console.error("Error during key request setup: ", error);
+});
+
+// Listen for the keyneeded event
+video.mediaKeys.addEventListener('keyneeded', (event) => {
+    const keyId = event.keyId; // The key ID that is needed
+    console.log("Key needed: ", keyId);
+
+    // Define the key data (in a real application, this would come from your key provider)
+    const keys = [
+        {
+            kid: keyId, // The key ID to match the needed key
+            k: "Base64EncodedKey" // Your base64 encoded key data
+        }
+    ];
+
+    // Find the matching key data
+    const keyData = keys.find(key => key.kid === keyId);
+    
+    if (keyData) {
+        // Decode the key from base64
+        const keyBuffer = Uint8Array.from(atob(keyData.k), c => c.charCodeAt(0));
+        mediaKeySession.update(keyBuffer) // Provide the key back to the session
+            .then(() => {
+                console.log("Key successfully updated.");
+            })
+            .catch(error => {
+                console.error("Error updating key: ", error);
+            });
+    } else {
+        console.error("Key not found for key ID: ", keyId);
+    }
+});
+
+// Listen for the keyadded event
+video.mediaKeys.addEventListener('keyadded', () => {
+    console.log("Key has been added successfully.");
+});
+
+// Listen for the close event
+mediaKeySession.addEventListener('close', () => {
+    console.log("MediaKeySession closed.");
+});
