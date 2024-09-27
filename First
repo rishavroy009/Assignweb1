@@ -1,101 +1,88 @@
-ClearKey is a straightforward and open-source digital rights management (DRM) solution that allows for easy key provisioning without requiring a license server. Here’s a detailed guide on how to implement ClearKey using Encrypted Media Extensions (EME).
-
-Step-by-Step Setup
-HTML Setup: Create a simple HTML page with a video element to play the DRM-protected content.
-html
-Copy code
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClearKey DRM Example</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClearKey Encryption Demo</title>
+  <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
 </head>
 <body>
-    <h1>ClearKey DRM Example</h1>
-    <video id="video" controls width="600">
-        <source src="path/to/your/video.mp4" type="video/mp4">
-        Your browser does not support HTML5 video.
-    </video>
-    <script src="script.js"></script>
+  <h1>ClearKey DRM Demo</h1>
+  
+  <video id="video" controls></video>
+
+  <script>
+    // Define the ClearKey configuration with key and keyId (example values)
+    const clearKeyConfig = {
+      video: document.getElementById('video'),
+      url: 'https://path_to_your_protected_video.mpd', // Update this to your MPD URL
+      keys: {
+        'keyId': '0123456789abcdef0123456789abcdef', // Example keyId
+        'key': '0123456789abcdef0123456789abcdef'   // Example key
+      }
+    };
+
+    // Initialize dash.js for DASH playback
+    const player = dashjs.MediaPlayer().create();
+    player.initialize(clearKeyConfig.video, clearKeyConfig.url, true);
+
+    // When the encrypted event occurs, provide ClearKey to the browser
+    clearKeyConfig.video.addEventListener('encrypted', (e) => {
+      const keySystem = 'org.w3.clearkey';  // Use ClearKey
+      const keySession = clearKeyConfig.video.mediaKeys.createSession();
+
+      keySession.addEventListener('message', (event) => {
+        const key = clearKeyConfig.keys;
+        const json = {
+          keys: [{
+            kty: 'oct',
+            alg: 'A128KW',
+            kid: key.keyId,
+            k: key.key
+          }]
+        };
+        const initData = event.message;
+        const response = new Uint8Array(JSON.stringify(json));
+
+        // Send the response containing the keys back to the session
+        keySession.update(response).catch(error => {
+          console.error('Key update failed:', error);
+        });
+      });
+
+      keySession.generateRequest(e.initDataType, e.initData).catch(error => {
+        console.error('Failed to generate license request:', error);
+      });
+    });
+
+    // Setup ClearKey as the key system
+    navigator.requestMediaKeySystemAccess('org.w3.clearkey', [{
+      initDataTypes: ['cenc'],
+      audioCapabilities: [{ contentType: 'audio/mp4; codecs="mp4a.40.2"' }],
+      videoCapabilities: [{ contentType: 'video/mp4; codecs="avc1.42E01E"' }]
+    }]).then(keySystemAccess => {
+      return keySystemAccess.createMediaKeys();
+    }).then(mediaKeys => {
+      return clearKeyConfig.video.setMediaKeys(mediaKeys);
+    }).catch(error => {
+      console.error('MediaKeys initialization failed:', error);
+    });
+
+  </script>
 </body>
 </html>
-JavaScript Implementation: In a separate JavaScript file (script.js), write the code to set up the ClearKey implementation.
-javascript
-Copy code
-// script.js
 
-// Define the ClearKey key system
-const keySystem = 'urn:uuid:9b2b663c-0a0c-4a8a-bb00-4d8c66c7f6f1'; // ClearKey Key System
-const video = document.getElementById('video'); // Get the video element
 
-// Request MediaKeySystemAccess
-navigator.requestMediaKeySystemAccess(keySystem, [{
-    initDataTypes: ['cenc'], // Specify initialization data types
-    videoCapabilities: [{ contentType: 'video/mp4; codecs="avc1.64001F"' }] // Supported codecs
-}])
-.then(mediaKeySystemAccess => {
-    // Create MediaKeys object
-    return mediaKeySystemAccess.createMediaKeys();
-})
-.then(mediaKeys => {
-    // Set media keys for the video element
-    return video.setMediaKeys(mediaKeys);
-})
-.then(() => {
-    // Create a new MediaKeySession
-    const mediaKeySession = video.mediaKeys.createSession();
+<GPACDRM type="CENC">
+  <DRMInfo type="pssh" version="1">
+    <DRMSystem systemID="1077efecc0b24d02ace33c1e52e2fb4b"> <!-- ClearKey system ID -->
+      <PSSHBox version="1" size="32">
+        <KID>0123456789abcdef0123456789abcdef</KID> <!-- This is the Key ID -->
+      </PSSHBox>
+    </DRMSystem>
+  </DRMInfo>
+  <CrypTrack trackID="1" IsEncrypted="1" IV_size="8" first_IV="0x0000000000000000" saiSavedBox="senc">
+    <key KID="0123456789abcdef0123456789abcdef" />
+  </CrypTrack>
+</GPACDRM>
 
-    // Define the initialization data (in this example, it's typically obtained from your MPD or MP4 file)
-    const initData = new Uint8Array([/* Your initialization data goes here */]);
-
-    // Generate a key request
-    return mediaKeySession.generateRequest('cenc', initData);
-})
-.then(() => {
-    console.log("Key request sent.");
-})
-.catch(error => {
-    console.error("Error during key request setup: ", error);
-});
-
-// Listen for the keyneeded event
-video.mediaKeys.addEventListener('keyneeded', (event) => {
-    const keyId = event.keyId; // The key ID that is needed
-    console.log("Key needed: ", keyId);
-
-    // Define the key data (in a real application, this would come from your key provider)
-    const keys = [
-        {
-            kid: keyId, // The key ID to match the needed key
-            k: "Base64EncodedKey" // Your base64 encoded key data
-        }
-    ];
-
-    // Find the matching key data
-    const keyData = keys.find(key => key.kid === keyId);
-    
-    if (keyData) {
-        // Decode the key from base64
-        const keyBuffer = Uint8Array.from(atob(keyData.k), c => c.charCodeAt(0));
-        mediaKeySession.update(keyBuffer) // Provide the key back to the session
-            .then(() => {
-                console.log("Key successfully updated.");
-            })
-            .catch(error => {
-                console.error("Error updating key: ", error);
-            });
-    } else {
-        console.error("Key not found for key ID: ", keyId);
-    }
-});
-
-// Listen for the keyadded event
-video.mediaKeys.addEventListener('keyadded', () => {
-    console.log("Key has been added successfully.");
-});
-
-// Listen for the close event
-mediaKeySession.addEventListener('close', () => {
-    console.log("MediaKeySession closed.");
-});
