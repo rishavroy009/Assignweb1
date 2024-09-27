@@ -36,3 +36,21 @@
     </script>
 </body>
 </html>
+
+
+
+
+
+<GPACDRM type="CENC">
+  <DRMInfo type="pssh" version="1">
+    <DRMSystem systemID="1077efecc0b24d02ace33c1e52e2fb4b">
+      <PSSHBox version="1" size="32">
+        <KID>0123456789abcdef0123456789abcdef</KID> <!-- This is the Key ID -->
+      </PSSHBox>
+    </DRMSystem>
+  </DRMInfo>
+  <CrypTrack trackID="1" IsEncrypted="1" IV_size="8" first_IV="0x0000000000000000" saiSavedBox="senc">
+    <key KID="0123456789abcdef0123456789abcdef" />
+  </CrypTrack>
+</GPACDRM>
+
