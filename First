@@ -1,33 +1,38 @@
-#include <iostream>
-#include <string>
-#include <npapi.h> // Assuming NPAPI is being used
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearKey DRM Demo</title>
+    <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+</head>
+<body>
+    <h1>ClearKey Encrypted Video Demo</h1>
+    <video id="videoPlayer" controls></video>
 
-bool WebBindings::Set(NPP npp, NPObject* object, NPIdentifier identifier, const NPVariant* value) {
-    // Log when the function is called
-    std::cout << "WebBindings::Set called" << std::endl;
-    
-    // Check if the identifier represents the 'width' property
-    char* propertyName = NPN_UTF8FromIdentifier(identifier); // Converts NPIdentifier to string
-
-    if (propertyName) {
-        std::cout << "Property being set: " << propertyName << std::endl;
+    <script>
+        var player = dashjs.MediaPlayer().create();
+        player.initialize(document.querySelector("#videoPlayer"), "encrypted_video.mpd", true);
         
-        // Check if the property is 'width'
-        if (std::string(propertyName) == "width") {
-            std::cout << "'width' property is being set" << std::endl;
+        player.on('encrypted', function(e) {
+            const key = {
+                keyId: '0123456789abcdef0123456789abcdef',  // Key ID from XML file
+                key: 'MTIzNDU2Nzg5YWJjZGVmZzEyMzQ1Njc4'    // Base64-encoded decryption key
+            };
 
-            // Log the value being set, assuming it's a numeric type
-            if (value->type == NPVariantType_Int32) {
-                std::cout << "Setting 'width' to: " << value->value.intValue << std::endl;
-            } else if (value->type == NPVariantType_Double) {
-                std::cout << "Setting 'width' to: " << value->value.doubleValue << std::endl;
-            } else if (value->type == NPVariantType_String) {
-                std::cout << "Setting 'width' to: " << std::string(value->value.stringValue.UTF8Characters, value->value.stringValue.UTF8Length) << std::endl;
-            } else {
-                std::cout << "Unknown type for 'width' property" << std::endl;
-            }
-        }
-    }
+            const json = {
+                keys: [{
+                    kty: 'oct',      // Key type
+                    alg: 'A128KW',   // Algorithm
+                    kid: key.keyId,  // Key ID (from the MPD)
+                    k: key.key       // Actual key (base64 encoded)
+                }]
+            };
 
-    return true; // Proceed with the rest of the function
-}
+            e.target.addEventListener('message', function(message) {
+                message.target.update(JSON.stringify(json));
+            });
+        });
+    </script>
+</body>
+</html>
