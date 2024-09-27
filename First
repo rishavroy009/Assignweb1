@@ -1,49 +1,25 @@
-Important Events in EME
-keyneeded:
+Digital Rights Management (DRM) refers to a set of technologies and policies used to control how digital content is used and distributed. It protects copyright holders by preventing unauthorized copying, sharing, and distribution of digital media. DRM is widely used in various content types, including music, movies, eBooks, and software.
 
-Description: Triggered when a key is required for decryption of the media.
-Usage: Implement this event to fetch the necessary key from your key store or service when it is called.
-keyadded:
+Why is DRM Important?
+Content Protection: DRM helps safeguard intellectual property, ensuring that creators receive fair compensation for their work.
+Revenue Generation: By restricting unauthorized access, DRM enables content providers to monetize their offerings effectively.
+User Control: DRM allows content providers to set specific usage rights, such as viewing duration, device limits, and download restrictions.
+Common DRM Technologies
+Encryption: Content is encrypted, and only authorized users can access the decryption keys.
+License Management: A license file contains the rights associated with the content, which the user must obtain to access it.
+Device Authentication: DRM systems often authenticate devices to ensure only approved hardware can access the content.
+How Does DRM Work?
+DRM typically involves the following steps:
 
-Description: Fired when a key has been successfully added to a MediaKeySession.
-Usage: Can be used to confirm that the key has been accepted and is available for decryption.
-keymessage:
-
-Description: This event is emitted when a key message is generated.
-Usage: You can handle this event to send the key message to a license server if using a system that requires it (not applicable to ClearKey).
-close:
-
-Description: Fired when a MediaKeySession is closed.
-Usage: Useful for cleaning up resources or notifying the user that playback is no longer protected.
-Important APIs and Method Calls in EME
-navigator.requestMediaKeySystemAccess():
-
-Purpose: Requests access to a specified media key system.
-Parameters:
-keySystem: A string representing the key system (e.g., urn:uuid:9b2b663c-0a0c-4a8a-bb00-4d8c66c7f6f1 for ClearKey).
-config: An array of configuration objects specifying the capabilities.
-Returns: A promise that resolves to MediaKeySystemAccess.
-MediaKeySystemAccess.createMediaKeys():
-
-Purpose: Creates a new MediaKeys object associated with the key system.
-Returns: A promise that resolves to a MediaKeys object.
-MediaKeys.createSession():
-
-Purpose: Creates a new MediaKeySession for handling key requests and updates.
-Returns: A MediaKeySession object.
-MediaKeySession.generateRequest():
-
-Purpose: Initiates the process to retrieve a key for decrypting media.
-Parameters:
-initDataType: The type of initialization data (e.g., 'cenc').
-initData: An array containing the initialization data.
-Returns: A promise that resolves when the request is sent.
-MediaKeySession.update():
-
-Purpose: Updates the session with a new key.
-Parameters: The key data to be added.
-Returns: A promise that resolves when the key is successfully added.
-MediaKeySession.close():
-
-Purpose: Closes the media key session.
-Returns: A promise that resolves when the session is closed.
+Content Preparation: The content is encrypted, and a license file is created.
+License Server: When a user attempts to access the content, the DRM system checks whether the user is authorized.
+Key Provisioning: If authorized, the system provides the necessary decryption keys or licenses to the user's device.
+Content Playback: The user can access and view the content according to the permissions granted.
+Key DRM Standards
+Widevine: Developed by Google, widely used in streaming services like Netflix and YouTube.
+PlayReady: Developed by Microsoft, commonly used in Windows and Xbox platforms.
+ClearKey: An open-source DRM solution that allows for easy key provisioning without requiring a license server.
+Challenges of DRM
+User Experience: Some users find DRM restrictions cumbersome, leading to frustration and abandonment of content.
+Compatibility Issues: Different DRM technologies may not work across all devices and platforms.
+Circumvention: Skilled users may find ways to bypass DRM protections, undermining its effectiveness.
