@@ -1,3 +1,1 @@
-MP4Box -dash 4000 -frag 4000 -profile onDemand -out output.mpd \
--encrypt -key 1234abcd1234abcd1234abcd1234abcd:abcd1234abcd1234abcd1234abcd1234 \
-output.mp4
+MP4Box -dash 4000 -frag 4000 -profile onDemand -out output.mpd -encrypt 1234abcd1234abcd1234abcd1234abcd:abcd1234abcd1234abcd1234abcd1234 output.mp4
