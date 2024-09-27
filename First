@@ -1,128 +1,32 @@
-Understanding Encrypted Media Extensions (EME)
-Introduction
-Encrypted Media Extensions (EME) is a W3C specification that allows web applications to interact with DRM (Digital Rights Management) systems to protect media content. EME provides a standardized way for browsers to support encrypted media playback while ensuring that content providers can enforce usage policies. This article aims to explain the core concepts of EME, its important APIs, methods, and events, and how to implement it in a web application.
+// 1. Create a MediaKeySession
+const keySystem = 'com.microsoft.playready'; // Use ClearKey for ClearKey
+const mediaKeySession = new MediaKeySession();
 
-Core Concepts of EME
-Key System: A key system is a DRM technology used to encrypt and manage media content. Examples include ClearKey, Widevine, and PlayReady.
+// 2. Generate a request with initialization data
+const initData = new Uint8Array([/* Your initialization data */]);
+mediaKeySession.generateRequest('cenc', initData).then(() => {
+    console.log("Key request sent to the server.");
+}).catch((error) => {
+    console.error("Error generating request: ", error);
+});
 
-MediaKeySession: This represents a session used for managing decryption keys and interacting with the key system.
+// 3. Listen for the keyneeded event
+mediaKeySession.addEventListener('keyneeded', (event) => {
+    const keyId = event.keyId; // The key ID that is needed
+    console.log("Key needed: ", keyId);
 
-Initialization Data: Data used to identify the encrypted content, typically provided to the key system to request decryption keys.
-
-Important APIs and Methods
-1. navigator.requestMediaKeySystemAccess()
-Purpose: Requests access to a specific key system for media decryption.
-Parameters:
-keySystem: A string identifier of the key system (e.g., 'com.microsoft.clearkey').
-config: An array of configuration objects that specify the supported initialization data types and media capabilities.
-2. MediaKeys
-Purpose: Represents the media keys associated with a key system.
-Method: createMediaKeys()
-Creates an instance of MediaKeys for use with a media element.
-3. MediaKeySession
-Purpose: Manages the key session for a specific media playback.
-Methods:
-generateRequest(initDataType, initData): Requests decryption keys using the specified initialization data.
-update(key): Updates the session with the provided key data.
-4. Events
-message: Fired when a key message is received from the key system.
-keystatuseschange: Fired when the status of keys in the session changes.
-Example Implementation
-Here’s an example of how to implement EME using ClearKey. This example demonstrates how to set up a video player that can play encrypted content.
-
-HTML Structure
-html
-Copy code
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>EME with ClearKey</title>
-</head>
-<body>
-    <video id="videoPlayer" controls></video>
-    <script src="eme-example.js"></script>
-</body>
-</html>
-JavaScript Code (eme-example.js)
-javascript
-Copy code
-(async function() {
-    const video = document.getElementById('videoPlayer'); // Get the video element
-
-    // Check if the browser supports EME
-    if (!navigator.requestMediaKeySystemAccess) {
-        console.error('EME not supported by this browser.');
-        return; // Exit if EME is not supported
-    }
-
-    // Define the ClearKey key system and supported capabilities
-    const keySystem = 'com.microsoft.clearkey'; // ClearKey key system identifier
-    const initData = new Uint8Array([/* your initialization data here */]); // Initialization data for the encrypted content
-
-    try {
-        // Request access to the ClearKey key system
-        const mediaKeySystemAccess = await navigator.requestMediaKeySystemAccess(keySystem, [{
-            initDataTypes: ['cenc'], // Supported initialization data types
-            videoCapabilities: [{ contentType: 'video/mp4; codecs="avc1.64001E"' }] // Supported codecs
-        }]);
-
-        // Create a MediaKeys object
-        const mediaKeys = await mediaKeySystemAccess.createMediaKeys();
-        await video.setMediaKeys(mediaKeys); // Set media keys for the video element
-
-        // Create a MediaKeySession
-        const keySession = mediaKeys.createSession();
-
-        // Generate a key request with the initialization data
-        await keySession.generateRequest('cenc', initData);
-
-        // Listen for messages from the key session
-        keySession.addEventListener('message', async (event) => {
-            // Send the key request to the server to obtain the decryption key
-            const response = await fetch('https://your-key-server/getKey', {
-                method: 'POST',
-                body: JSON.stringify(event.message), // Send the message to the key server
-                headers: { 'Content-Type': 'application/json' }
+    // 4. Fetch the key from the server
+    fetch(`https://your-license-server.com/getKey?keyId=${keyId}`)
+        .then(response => response.json())
+        .then(data => {
+            // 5. Provide the key back to the mediaKeySession
+            mediaKeySession.update(data.key).then(() => {
+                console.log("Key successfully updated.");
+            }).catch((error) => {
+                console.error("Error updating key: ", error);
             });
-            const key = await response.json(); // Parse the key response
-
-            // Update the key session with the retrieved key
-            await keySession.update(key);
+        })
+        .catch((error) => {
+            console.error("Error fetching key from server: ", error);
         });
-
-        // Listen for changes in key status
-        keySession.addEventListener('keystatuseschange', () => {
-            // Check the status of the keys
-            if (keySession.keyStatuses.has('usable')) {
-                console.log('Key is usable.');
-            }
-        });
-
-    } catch (error) {
-        console.error('Error with EME:', error); // Handle errors gracefully
-    }
-
-    // Set the video source to the encrypted content
-    video.src = 'https://path-to-your-encrypted-video.mp4'; // Ensure this video is encrypted
-})();
-Explanation of the Example
-HTML Setup: The HTML file contains a <video> element where the encrypted media will be played.
-
-Checking EME Support: The script checks if the browser supports EME using navigator.requestMediaKeySystemAccess.
-
-Key System Access: It requests access to the ClearKey key system and specifies the initialization data types and video capabilities.
-
-Creating Media Keys: After obtaining access, it creates a MediaKeys object and associates it with the video element.
-
-Managing Key Sessions: A MediaKeySession is created to manage key requests and responses.
-
-Handling Key Messages: The code listens for messages from the key session, sends key requests to the server, and updates the session with the retrieved keys.
-
-Key Status Monitoring: It monitors the key status changes and logs when a key becomes usable.
-
-Setting Video Source: Finally, the source of the video is set to the encrypted content.
-
-Conclusion
-Encrypted Media Extensions (EME) provide a robust framework for managing and playing encrypted media on the web. By leveraging key systems like ClearKey, developers can protect their content while ensuring a seamless playback experience for users. Understanding the important APIs and methods within EME is crucial for implementing effective media protection in web applications.
-
+});
