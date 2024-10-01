@@ -17,3 +17,6 @@ sudo mv encrypted_output.mp4 out.mpd /usr/local/var/www/
 
 
 sudo chmod 644 /usr/local/var/www/encrypted_output.mp4 /usr/local/var/www/out.mpd
+
+
+sudo mv encrypted_output*.mp4 out.mpd /usr/local/var/www/
