@@ -1,19 +1,70 @@
-<IfModule mod_ssl.c>
-    <VirtualHost _default_:443>
-        ServerAdmin webmaster@localhost
-        DocumentRoot /var/www/html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearKey DRM Video Player</title>
+</head>
+<body>
+    <video id="video" controls width="640" height="360"></video>
 
-        SSLEngine on
-        SSLCertificateFile /etc/ssl/certs/selfsigned.crt
-        SSLCertificateKeyFile /etc/ssl/private/selfsigned.key
+    <script>
+        const video = document.getElementById('video');
 
-        <FilesMatch "\.(cgi|shtml|phtml|php)$">
-            SSLEngine on
-        </FilesMatch>
-        <Directory /var/www/html>
-            AllowOverride All
-        </Directory>
-        ErrorLog ${APACHE_LOG_DIR}/error.log
-        CustomLog ${APACHE_LOG_DIR}/access.log combined
-    </VirtualHost>
-</IfModule>
+        // Check if the requestMediaKeySystemAccess API is supported
+        if ('requestMediaKeySystemAccess' in navigator) {
+            console.log('EME API supported!');
+
+            const config = [{
+                initDataTypes: ['keyids'], // Specify the init data type
+                videoCapabilities: [{
+                    contentType: 'video/mp4; codecs="avc1.42E01E"' // Specify your video codec
+                }]
+            }];
+
+            // Request access to the ClearKey key system
+            navigator.requestMediaKeySystemAccess('org.w3.clearkey', config)
+                .then(keySystemAccess => {
+                    return keySystemAccess.createMediaKeys();
+                })
+                .then(mediaKeys => {
+                    return video.setMediaKeys(mediaKeys);
+                })
+                .then(() => {
+                    console.log('MediaKeys added to video.');
+
+                    // Listen for the 'encrypted' event to handle license requests
+                    video.addEventListener('encrypted', event => {
+                        console.log('Encrypted event received:', event);
+                        // Example: Create a ClearKey key map
+                        const keySystem = {
+                            'org.w3.clearkey': {
+                                'keys': [
+                                    {
+                                        'kty': 'oct', // Key type
+                                        'k': 'YOUR_BASE64_ENCODED_KEY', // Replace with your Base64-encoded key
+                                        'kid': 'YOUR_BASE64_ENCODED_KEY_ID' // Replace with your Base64-encoded key ID
+                                    }
+                                ]
+                            }
+                        };
+
+                        // Process the event and respond with the key
+                        const request = new ClearKeyLicenseRequest(event.initData);
+                        const response = new ClearKeyLicenseResponse(keySystem);
+                        video.setMediaKeys(mediaKeys);
+                        video.play();
+                    });
+
+                    // Set the source for the video
+                    video.src = 'YOUR_ENCRYPTED_VIDEO_URL'; // Replace with your encrypted video URL
+                })
+                .catch(error => {
+                    console.error('Error with EME:', error);
+                });
+        } else {
+            console.error('EME API is not supported by this browser.');
+        }
+    </script>
+</body>
+</html>
