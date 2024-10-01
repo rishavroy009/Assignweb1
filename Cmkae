@@ -68,3 +68,18 @@
     </script>
 </body>
 </html>
+
+
+
+
+const keySystem = {
+    'org.w3.clearkey': {
+        'keys': [
+            {
+                'kty': 'oct', // Key type
+                'k': 'q93xRYVOSu5hprg1mI30/w==', // Replace with your Base64-encoded key
+                'kid': 'EjRWeChhMBTEiUwyV8kX3g==' // Replace with your Base64-encoded key ID
+            }
+        ]
+    }
+};
