@@ -1,47 +1,26 @@
-#include <iostream>
-#include <fstream>
-#include <pbnjson.hpp>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ClearKey DRM Test</title>
+    <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+</head>
+<body>
+    <h1>ClearKey DRM Encrypted Video</h1>
+    <video id="videoPlayer" controls width="640" height="360"></video>
 
-void printJson(const pbnjson::JValue& value) {
-    if (value.isObject()) {
-        for (const auto& key : value.children()) {
-            std::cout << "Key: " << key.first.asString() << std::endl;
-            printJson(key.second);
-        }
-    } else if (value.isArray()) {
-        for (const auto& element : value.items()) {
-            printJson(element);
-        }
-    } else {
-        std::cout << "Value: " << value.stringify() << std::endl;
-    }
-}
+    <script>
+        var url = 'http://localhost/out.mpd';
+        var player = dashjs.MediaPlayer().create();
+        player.initialize(document.querySelector("#videoPlayer"), url, true);
 
-void parseJson(const std::string& filename) {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        std::cerr << "Failed to open file: " << filename << std::endl;
-        return;
-    }
-
-    pbnjson::JDomParser parser;
-    if (!parser.parseFile(filename.c_str(), pbnjson::JSchema::AllSchema())) {
-        std::cerr << "Failed to parse JSON file: " << filename << std::endl;
-        return;
-    }
-
-    const pbnjson::JValue& root = parser.getDom();
-    printJson(root);
-}
-
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <json_file>" << std::endl;
-        return 1;
-    }
-
-    const std::string json_file = argv[1];
-    parseJson(json_file);
-
-    return 0;
-}
+        // Set up ClearKey protection
+        player.setProtectionData({
+            "org.w3.clearkey": {
+                "clearkeys": {
+                    "f239e769f45bb2c1b5e5f22b014fed8c": "1e4b78991234abcd56781234def56789"
+                }
+            }
+        });
+    </script>
+</body>
+</html>
