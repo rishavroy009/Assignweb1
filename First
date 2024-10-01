@@ -20,3 +20,6 @@ sudo chmod 644 /usr/local/var/www/encrypted_output.mp4 /usr/local/var/www/out.mp
 
 
 sudo mv encrypted_output*.mp4 out.mpd /usr/local/var/www/
+
+
+ffmpeg -i input.mp4 -c:v copy -c:a copy -f mp4 -encryption_scheme cenc-aes-ctr -encryption_key "abcdef1234567890abcdef1234567890" -encryption_kid "1234567890abcdef1234567890abcdef" output_encrypted.mp4
