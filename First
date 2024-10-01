@@ -1,88 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClearKey Encryption Demo</title>
-  <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
-</head>
-<body>
-  <h1>ClearKey DRM Demo</h1>
-  
-  <video id="video" controls></video>
+openssl rand -hex 16
 
-  <script>
-    // Define the ClearKey configuration with key and keyId (example values)
-    const clearKeyConfig = {
-      video: document.getElementById('video'),
-      url: 'https://path_to_your_protected_video.mpd', // Update this to your MPD URL
-      keys: {
-        'keyId': '0123456789abcdef0123456789abcdef', // Example keyId
-        'key': '0123456789abcdef0123456789abcdef'   // Example key
-      }
-    };
-
-    // Initialize dash.js for DASH playback
-    const player = dashjs.MediaPlayer().create();
-    player.initialize(clearKeyConfig.video, clearKeyConfig.url, true);
-
-    // When the encrypted event occurs, provide ClearKey to the browser
-    clearKeyConfig.video.addEventListener('encrypted', (e) => {
-      const keySystem = 'org.w3.clearkey';  // Use ClearKey
-      const keySession = clearKeyConfig.video.mediaKeys.createSession();
-
-      keySession.addEventListener('message', (event) => {
-        const key = clearKeyConfig.keys;
-        const json = {
-          keys: [{
-            kty: 'oct',
-            alg: 'A128KW',
-            kid: key.keyId,
-            k: key.key
-          }]
-        };
-        const initData = event.message;
-        const response = new Uint8Array(JSON.stringify(json));
-
-        // Send the response containing the keys back to the session
-        keySession.update(response).catch(error => {
-          console.error('Key update failed:', error);
-        });
-      });
-
-      keySession.generateRequest(e.initDataType, e.initData).catch(error => {
-        console.error('Failed to generate license request:', error);
-      });
-    });
-
-    // Setup ClearKey as the key system
-    navigator.requestMediaKeySystemAccess('org.w3.clearkey', [{
-      initDataTypes: ['cenc'],
-      audioCapabilities: [{ contentType: 'audio/mp4; codecs="mp4a.40.2"' }],
-      videoCapabilities: [{ contentType: 'video/mp4; codecs="avc1.42E01E"' }]
-    }]).then(keySystemAccess => {
-      return keySystemAccess.createMediaKeys();
-    }).then(mediaKeys => {
-      return clearKeyConfig.video.setMediaKeys(mediaKeys);
-    }).catch(error => {
-      console.error('MediaKeys initialization failed:', error);
-    });
-
-  </script>
-</body>
-</html>
+ffmpeg -i input.mp4 -c:v copy -c:a copy -encryption_scheme cenc-aes-ctr \
+-encryption_key 1e4b78991234abcd56781234def56789 \
+-encryption_kid f239e769f45bb2c1b5e5f22b014fed8c \
+-f mp4 encrypted_output.mp4
 
 
-<GPACDRM type="CENC">
-  <DRMInfo type="pssh" version="1">
-    <DRMSystem systemID="1077efecc0b24d02ace33c1e52e2fb4b"> <!-- ClearKey system ID -->
-      <PSSHBox version="1" size="32">
-        <KID>0123456789abcdef0123456789abcdef</KID> <!-- This is the Key ID -->
-      </PSSHBox>
-    </DRMSystem>
-  </DRMInfo>
-  <CrypTrack trackID="1" IsEncrypted="1" IV_size="8" first_IV="0x0000000000000000" saiSavedBox="senc">
-    <key KID="0123456789abcdef0123456789abcdef" />
-  </CrypTrack>
-</GPACDRM>
 
+mp4box -dash 4000 -rap -profile dashavc264:live \
+-encrypt -key f239e769f45bb2c1b5e5f22b014fed8c:1e4b78991234abcd56781234def56789 \
+out.mpd encrypted_output.mp4
+
+
+sudo mv encrypted_output.mp4 out.mpd /usr/local/var/www/
+
+
+
+sudo chmod 644 /usr/local/var/www/encrypted_output.mp4 /usr/local/var/www/out.mpd
