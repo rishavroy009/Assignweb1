@@ -1,77 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>ClearKey DRM Test</title>
-</head>
-<body>
-    <h1>ClearKey DRM Encrypted Video</h1>
-    <video id="video" width="640" height="360" controls></video>
+<IfModule mod_ssl.c>
+    <VirtualHost _default_:443>
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/html
 
-    <script>
-        function hexToUint8Array(hex) {
-            const bytes = new Uint8Array(hex.length / 2);
-            for (let i = 0; i < hex.length; i += 2) {
-                bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
-            }
-            return bytes;
-        }
+        SSLEngine on
+        SSLCertificateFile /etc/ssl/certs/selfsigned.crt
+        SSLCertificateKeyFile /etc/ssl/private/selfsigned.key
 
-        async function initPlayer() {
-            const video = document.getElementById('video');
-
-            // Create a MediaSource object
-            const mediaSource = new MediaSource();
-            video.src = URL.createObjectURL(mediaSource);
-
-            mediaSource.addEventListener('sourceopen', async () => {
-                const keySystem = 'org.w3.clearkey';
-
-                // Create a MediaKeys object for ClearKey
-                const keySystemAccess = await navigator.requestMediaKeySystemAccess(keySystem, [{
-                    initDataTypes: ['cenc'],
-                    videoCapabilities: [{
-                        contentType: 'video/mp4; codecs="avc1.64001E"', // Adjust codec as necessary
-                    }]
-                }]);
-
-                const mediaKeys = await keySystemAccess.createMediaKeys();
-                video.setMediaKeys(mediaKeys);
-
-                // Set up ClearKey keys
-                const keyIdHex = 'f239e769f45bb2c1b5e5f22b014fed8c'; // Replace with your KeyID
-                const keyHex = '1e4b78991234abcd56781234def56789'; // Replace with your Key
-
-                const keyId = hexToUint8Array(keyIdHex);
-                const key = hexToUint8Array(keyHex);
-
-                // Add the ClearKey to the MediaKeys
-                await mediaKeys.setKey(keyId, key);
-
-                // Load the DASH manifest
-                const response = await fetch('http://localhost/output.mpd');
-                const text = await response.text();
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(text, "application/xml");
-                const adaptationSets = xmlDoc.getElementsByTagName('AdaptationSet');
-
-                // Loop through the adaptation sets and add them to the media source
-                for (let i = 0; i < adaptationSets.length; i++) {
-                    const representation = adaptationSets[i].getElementsByTagName('Representation')[0];
-                    const url = representation.getElementsByTagName('BaseURL')[0].textContent;
-
-                    const sourceBuffer = mediaSource.addSourceBuffer(representation.getAttribute('mimeType'));
-                    const segResponse = await fetch(url);
-                    const arrayBuffer = await segResponse.arrayBuffer();
-                    sourceBuffer.appendBuffer(arrayBuffer);
-                }
-
-                // Once all buffers are appended, start playing the video
-                video.play();
-            });
-        }
-
-        // Initialize the player
-        initPlayer();
-    </script>
-</body>
-</html>
+        <FilesMatch "\.(cgi|shtml|phtml|php)$">
+            SSLEngine on
+        </FilesMatch>
+        <Directory /var/www/html>
+            AllowOverride All
+        </Directory>
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+    </VirtualHost>
+</IfModule>
