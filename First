@@ -1,25 +1,14 @@
-openssl rand -hex 16
-
-ffmpeg -i input.mp4 -c:v copy -c:a copy -encryption_scheme cenc-aes-ctr \
--encryption_key 1e4b78991234abcd56781234def56789 \
--encryption_kid f239e769f45bb2c1b5e5f22b014fed8c \
--f mp4 encrypted_output.mp4
-
+ffmpeg -i input.mp4 -c:v copy -c:a copy -f mp4 \
+-encryption_scheme cenc-aes-ctr \
+-encryption_key abcdef1234567890abcdef1234567890 \
+-encryption_kid 1234567890abcdef1234567890abcdef \
+output_encrypted.mp4
 
 
-mp4box -dash 4000 -rap -profile dashavc264:live \
--encrypt -key f239e769f45bb2c1b5e5f22b014fed8c:1e4b78991234abcd56781234def56789 \
-out.mpd encrypted_output.mp4
+MP4Box -dash 4000 -rap -profile onDemand -out output.mpd \
+-encryption-key=1234567890abcdef1234567890abcdef:abcdef1234567890abcdef1234567890 \
+output_encrypted.mp4
 
 
-sudo mv encrypted_output.mp4 out.mpd /usr/local/var/www/
-
-
-
-sudo chmod 644 /usr/local/var/www/encrypted_output.mp4 /usr/local/var/www/out.mpd
-
-
-sudo mv encrypted_output*.mp4 out.mpd /usr/local/var/www/
-
-
-ffmpeg -i input.mp4 -c:v copy -c:a copy -f mp4 -encryption_scheme cenc-aes-ctr -encryption_key "abcdef1234567890abcdef1234567890" -encryption_kid "1234567890abcdef1234567890abcdef" output_encrypted.mp4
+sudo mv output.mpd /usr/local/var/www/
+sudo mv output_encrypted*.m4s /usr/local/var/www/
