@@ -1,35 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DASH.js ClearKey Demo</title>
-    <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
-</head>
-<body>
-    <h1>DASH.js ClearKey Demo</h1>
-    <video id="videoPlayer" controls style="width: 100%; height: auto;"></video>
+Configuring ClearKey without using EME and the key system "org.w3.clearkey" is not a straightforward process. The search results suggest that you would need to modify the EMEController in hls.js to request key systems for org.w 3.clearkey and then use the key system to generate keys.
 
-    <script>
-        var url = 'http://localhost/output.mpd'; // URL of the MPD file
+However, in the context of Shaka Packager, it appears that the --enable_raw_key_encryption option allows you to configure ClearKey encryption without using EME and the key system "org.w3.clearkey". This is likely because Shaka Packager is using a lower-level API to configure the encryption settings.
 
-        var player = dashjs.MediaPlayer().create();
-        player.initialize(document.querySelector("#videoPlayer"), url, true);
+In other words, Shaka Packager is bypassing the EME layer and directly configuring the encryption settings for ClearKey. This is possible because Shaka Packager is a packager, not a player, and it has more control over the underlying encryption settings.
 
-        var clearkey = {
-            "keys": [{
-                "kty": "oct",
-                "k": "q83DEkVWXTNyNFpBMEFiSjROVg==",  // Base64-encoded key
-                "kid": "EjRWeChhMBTEiUwyV8kX3g=="  // Base64-encoded key ID
-            }]
-        };
+Here's an example of how you might configure ClearKey encryption using the --enable_raw_key_encryption option in Shaka Packager:
 
-        player.setProtectionData({
-            "org.w3.clearkey": {
-                "clearkeys": clearkey
-            }
-        });
-    </script>
-</body>
-</html>
+
+
+// Configure ClearKey encryption settings
+const clearKeySettings = {
+  key: 'YOUR_CLEAR_KEY',
+  keyId: 'YOUR_KEY_ID',
+  keyFormat: 'raw',
+  keyFormatVersions: '1',
+};
+
+// Use the --enable_raw_key_encryption option to configure ClearKey encryption
+const packager = new shaka.packager.Packager();
+packager.configure({
+  // ... other configuration options ...
+  enableRawKeyEncryption: true,
+  clearKeySettings,
+});
+
+
+
+Note that this is just an example, and you should replace YOUR_CLEAR_KEY and YOUR_KEY_ID with your actual ClearKey settings.
+
+In summary, Shaka Packager allows you to configure ClearKey encryption without using EME and the key system "org.w3.clearkey" by using the --enable_raw_key_encryption option and directly configuring the encryption settings. This is possible because Shaka Packager is a packager, not a player, and it has more control over the underlying encryption settings.
+
