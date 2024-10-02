@@ -1,0 +1,64 @@
+Variables and Objects
+
+video: This is a variable that references the video element in the HTML document. It is obtained using the document.getElementById method.
+player: This is an object that represents the Shaka Player instance. It is created using the shaka.Player constructor and is passed the video element as an argument.
+Shaka Player Configuration
+
+The Shaka Player is configured using the configure method, which takes an object as an argument. The object contains a drm property, which is an object that contains the DRM (Digital Rights Management) configuration.
+
+drm: This is an object that contains the DRM configuration. It has a clearKeys property, which is an object that contains the Clear Key encryption configuration.
+clearKeys: This is an object that contains the Clear Key encryption configuration. It has a property with the key ID as the key and the key as the value. In this case, the key ID is abba271e8bcf552bbd2e86a434a9a5d9 and the key is 69eaa802a6763af979e8d1940fb88392.
+Loading the Video
+
+The video is loaded using the load method of the Shaka Player instance. The method takes a URL as an argument, which is the URL of the manifest file (manifest.mpd) that contains the encrypted video.
+
+load: This is a method of the Shaka Player instance that loads the video from the specified URL.
+Error Handling
+
+The code also includes error handling using the catch method. If an error occurs while loading the video, the error is logged to the console using the console.error method.
+
+Packages and Classes
+
+shaka: This is the package that contains the Shaka Player library.
+shaka.Player: This is the class that represents the Shaka Player instance.
+shaka.Player.configure: This is a method of the Shaka Player instance that configures the player.
+shaka.Player.load: This is a method of the Shaka Player instance that loads the video.
+Methods
+
+document.getElementById: This is a method of the document object that returns an element with the specified ID.
+shaka.Player: This is a constructor that creates a new Shaka Player instance.
+configure: This is a method of the Shaka Player instance that configures the player.
+load: This is a method of the Shaka Player instance that loads the video.
+catch: This is a method that handles errors that occur during the execution of the code.
+I hope this explanation helps! Let me know if you have any further questions.
+
+player is the class or object ?
+
+In the code, player is an object, not a class.
+
+player is an instance of the shaka.Player class, which is a constructor function that creates a new Shaka Player instance.
+
+In other words, shaka.Player is the class, and player is an object that is created by calling the shaka.Player constructor function.
+
+Here's a breakdown of the difference:
+
+shaka.Player: This is a class, which is a blueprint for creating objects. It defines the properties and methods that an object of this class will have.
+player: This is an object, which is an instance of the shaka.Player class. It is created by calling the shaka.Player constructor function, and it has its own set of properties and methods that are defined by the shaka.Player class.
+So, to summarize:
+
+shaka.Player is a class (constructor function)
+player is an object (instance of the shaka.Player class)
+
+shaka.Player is the class?
+
+shaka.Player is not exactly a class in the classical sense, but rather a constructor function.
+
+In JavaScript, classes are not defined in the same way as in other languages like Java or C++. Instead, JavaScript uses a concept called "prototypal inheritance" to create objects that can inherit properties and methods from other objects.
+
+shaka.Player is a constructor function that creates a new object when called with the new keyword. This object inherits properties and methods from the shaka.Player.prototype object, which is the prototype of the shaka.Player constructor function.
+
+So, to be more precise:
+
+shaka.Player is a constructor function
+shaka.Player.prototype is the prototype object that defines the properties and methods inherited by objects created with the shaka.Player constructor function
+player is an object created by calling the shaka.Player constructor function, which inherits properties and methods from the shaka.Player.prototype object.
