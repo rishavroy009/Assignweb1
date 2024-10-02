@@ -1,0 +1,26 @@
+A packager is a software tool that takes in media files (such as video and audio files) and packages them into a format that can be played back on various devices and platforms.
+
+In the context of video streaming, a packager is responsible for:
+
+Transcoding: Converting the input media files into different formats and resolutions to support various devices and platforms.
+Segmentation: Breaking the media files into smaller segments, such as chunks or fragments, to enable efficient streaming.
+Encryption: Encrypting the media files to protect them from unauthorized access.
+Manifest creation: Creating a manifest file that describes the packaged media files, including their format, resolution, and encryption settings.
+The output of a packager is typically a set of files that can be played back on various devices and platforms, such as:
+
+DASH (Dynamic Adaptive Streaming over HTTP) files
+HLS (HTTP Live Streaming) files
+MP4 files
+WebM files
+Packagers can be used for various purposes, including:
+
+Video on demand (VOD): Packaging media files for on-demand streaming.
+Live streaming: Packaging live media streams for real-time streaming.
+Content protection: Encrypting media files to protect them from unauthorized access.
+Some popular packagers include:
+
+Shaka Packager (open-source)
+FFmpeg (open-source)
+AWS Elemental MediaConvert (commercial)
+Google Cloud Video Intelligence (commercial)
+In the context of Shaka Packager, the packager is responsible for taking in media files and packaging them into DASH files that can be played back on various devices and platforms. The packager also supports encryption and content protection using ClearKey and other DRM systems.
