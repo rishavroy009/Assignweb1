@@ -1,11 +1,11 @@
-// Define the font using @font-face
-const fontFace = new FontFace('CustomFont', 'url(https://example.com/path-to-your-font.otf)');
+// Select all <p> elements
+const pTags = document.querySelectorAll('p');
 
-// Add the font to the document
-fontFace.load().then(function(loadedFont) {
-    document.fonts.add(loadedFont);
-    
-    // Select the paragraph and apply the font
-    const paragraph = document.querySelector('p');
-    paragraph.style.fontFamily = 'CustomFont';
+// Iterate through each <p> tag
+pTags.forEach((pTag) => {
+    // Check if the font family is set to 'default'
+    if (pTag.style.fontFamily === 'default') {
+        // Set genericFamilyName to proportionalSansSerif
+        pTag.style.fontFamily = 'proportionalSansSerif';
+    }
 });
