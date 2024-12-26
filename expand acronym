@@ -1,0 +1,177 @@
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+using namespace std;
+
+string removeSpecial(string word) {
+    string result = "";
+    for (int j = 0; j < word.length(); j++) {
+        if (word[j] >= 'A' && word[j] <= 'Z' || word[j] >= 'a' && word[j] <= 'z') {
+            result += word[j];
+        }
+    }
+    return result;
+}
+
+int main() {
+    int N = 0, index = 0;
+    cin >> N;
+
+    string line, buffer, word1, word2;
+    vector<string> sentences;
+
+    // Consume the newline character after the number
+    getline(cin, buffer);
+
+    while (index != N && getline(cin, line)) {
+        sentences.push_back(line);
+        index++;
+    }
+
+    index = 0;
+    // acronyms
+    while (getline(cin, line)) {
+        bool found = false;
+        for (int i = 0; i < sentences.size(); i++) {
+            istringstream iss(sentences[i]);
+
+            while (iss >> word1) {
+                string word1_new = removeSpecial(word1);
+                if (word1_new == line && word1[0] == '(') {
+                    istringstream iss2(sentences[i]);
+                    string abbrev = "";
+                    iss2 >> word2;
+                    string temp1 = word2;
+                    int const t1Lm = temp1.length() - 1;
+                    while (temp1 == "The" || temp1 == "A" || temp1 == "a" || !((char)toupper(temp1[0]) >= 'A' && (char)toupper(temp1[0]) <= 'Z') && !((char)toupper(temp1[t1Lm]) >= 'A' && (char)toupper(temp1[t1Lm]) <= 'Z')) {
+                        iss2 >> word2;
+                        temp1 = word2;
+                        temp1[0] = (char)toupper(temp1[0]);
+                        temp1[temp1.length() - 1] = (char)toupper(temp1[t1Lm]);
+                    }
+
+                    while (word1 != word2) {
+                        string temp2 = word2;
+                        int const t2Lm = temp2.length() - 1;
+                        if (temp2 == "The" || temp2 == "A" || temp2 == "a" || !((char)toupper(temp2[0]) >= 'A' && (char)toupper(temp2[0]) <= 'Z') && !((char)toupper(temp2[t2Lm]) >= 'A' && (char)toupper(temp2[t2Lm]) <= 'Z')) {
+                            abbrev = "";
+                        } else {
+                            abbrev += word2 + " ";
+                        }
+
+                        if (!(abbrev[0] >= 'A' && abbrev[0] <= 'Z')) {
+                            abbrev = "";
+                        }
+
+                        iss2 >> word2;
+                    }
+                    cout << abbrev.substr(0, abbrev.length() - 1);
+                    if (index != N - 1) {
+                        cout << endl;
+                    }
+                    found = true;
+                    break;
+                }
+
+                if (found) {
+                    break;
+                }
+            }
+
+            if (found) {
+                break;
+            }
+
+            int wordIndex = 0;
+            istringstream iss2(sentences[i]);
+            while (iss2 >> word1) {
+                if (word1[0] == line[0] && word1 != line) {
+                    int indexLine = 1, indexPWord = 0, temp = -1;
+                    istringstream iss3(sentences[i]);
+                    string abbrev = word1 + " ";
+
+                    while (temp != wordIndex) {
+                        iss3 >> word2;
+                        temp++;
+                    }
+                    do {
+                        bool hyphen = false;
+                        string prevWord = word2;
+
+                        for (int w = 0; w < prevWord.length(); w++) {
+                            if (prevWord[w] == '-') {
+                                hyphen = true;
+                            }
+                        }
+
+                        iss3 >> word2;
+                        if (word2[0] == line[indexLine]) {
+                            abbrev += word2 + " ";
+                            while (word2[0] == line[indexLine]) {
+                                indexLine++;
+                            }
+                        }
+                        else if (word2 == "the" || word2 == "of" || word2 == "for" || word2 == "and") {
+                            abbrev += word2 + " ";
+                        } else {
+                            bool move = false;
+                            for (int k = indexPWord + 1; k < prevWord.length(); k++) {
+                                if ((char)toupper(prevWord[k]) == line[indexLine]) {
+                                    indexLine++;
+                                    if (word2[0] == line[indexLine]) {
+                                        abbrev += word2 + " ";
+                                        move = true;
+                                        while (word2[0] == line[indexLine]) {
+                                            indexLine++;
+                                        }
+                                        break;
+                                    }
+                                }
+                                else if (hyphen) {
+                                    while (prevWord[k] != '-') {
+                                        k++;
+                                    }
+                                    hyphen = false;
+                                }
+                                else {
+                                    break;
+                                }
+                            }
+                            if (!move) {
+                                break;
+                            }
+                        }
+
+                    } while (indexLine != line.length());
+
+                    if (indexLine == line.length()) {
+                        if (abbrev[abbrev.length() - 2] == '.') {
+                            cout << abbrev.substr(0, abbrev.length() - 2);
+                        }
+                        else {
+                            cout << abbrev.substr(0, abbrev.length() - 1);
+                        }
+                        if (index != N - 1) {
+                            cout << endl;
+                        }
+                        found = true;
+                    }
+
+                }
+                wordIndex++;
+                if (found) {
+                    break;
+                }
+            }
+
+            if (found) {
+                break;
+            }
+
+        }
+        index++;
+    }
+
+    return 0;
+}
