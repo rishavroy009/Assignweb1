@@ -1,32 +1,61 @@
-Configuring ClearKey without using EME and the key system "org.w3.clearkey" is not a straightforward process. The search results suggest that you would need to modify the EMEController in hls.js to request key systems for org.w 3.clearkey and then use the key system to generate keys.
+#include <bits/stdc++.h>
+using namespace std;
 
-However, in the context of Shaka Packager, it appears that the --enable_raw_key_encryption option allows you to configure ClearKey encryption without using EME and the key system "org.w3.clearkey". This is likely because Shaka Packager is using a lower-level API to configure the encryption settings.
-
-In other words, Shaka Packager is bypassing the EME layer and directly configuring the encryption settings for ClearKey. This is possible because Shaka Packager is a packager, not a player, and it has more control over the underlying encryption settings.
-
-Here's an example of how you might configure ClearKey encryption using the --enable_raw_key_encryption option in Shaka Packager:
-
-
-
-// Configure ClearKey encryption settings
-const clearKeySettings = {
-  key: 'YOUR_CLEAR_KEY',
-  keyId: 'YOUR_KEY_ID',
-  keyFormat: 'raw',
-  keyFormatVersions: '1',
-};
-
-// Use the --enable_raw_key_encryption option to configure ClearKey encryption
-const packager = new shaka.packager.Packager();
-packager.configure({
-  // ... other configuration options ...
-  enableRawKeyEncryption: true,
-  clearKeySettings,
-});
-
-
-
-Note that this is just an example, and you should replace YOUR_CLEAR_KEY and YOUR_KEY_ID with your actual ClearKey settings.
-
-In summary, Shaka Packager allows you to configure ClearKey encryption without using EME and the key system "org.w3.clearkey" by using the --enable_raw_key_encryption option and directly configuring the encryption settings. This is possible because Shaka Packager is a packager, not a player, and it has more control over the underlying encryption settings.
-
+int main(){
+    int n;
+    cin>>n;
+    set<string> st;
+    //suffix array set
+    for(int i=0;i<n;i++){
+        string str;
+        cin>>str;
+        int len=str.length();
+        int p=len-1;
+        while(p>=0){
+            st.insert(str.substr(p));
+            p--;
+        }
+    }
+    
+    
+    vector<string> subs(st.size());
+    vector<int> lens(st.size());
+    vector<int> height(st.size());
+    int c=0;
+    //set to vector and length vector for easy access
+    for(auto x:st){
+        subs[c]=x;
+        lens[c]=x.length();
+        c++;
+    }
+    //LCP array
+    for(int i=1;i<subs.size();i++){
+        int less_size= min(lens[i],lens[i-1]);
+        height[i]=less_size;
+        for(int l=0;l<less_size;l++){
+            if(subs[i][l]!=subs[i-1][l]){
+                height[i]=l;
+                break;
+            }
+        }
+        
+    }
+    
+    
+    int q;
+    cin>>q;
+    while(q--){
+        int k;
+        cin>>k;
+        int ind=0;
+        while(k> lens[ind]- height[ind] && ind<subs.size()){
+            k = k- (lens[ind]-height[ind]);   // if k is within that index and their contri substrings then reduce that much substrings from k since that much already contributed
+            ind++;
+        }
+        
+        if(ind>=subs.size())cout<< ("INVALID")<<endl;
+        else cout<< subs[ind].substr(0,k+height[ind])<<endl;
+    }
+    
+    
+}
