@@ -1,0 +1,57 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    int N, M;
+    cin >> N >> M;
+    
+    vector<int> compounds(N);
+    for (int i = 0; i < N; ++i) {
+        cin >> compounds[i];
+    }
+
+    // Frequency array to store counts of IDs in the current window
+    vector<int> freq(16, 0);
+    
+    // Initialize the first window
+    for (int i = 0; i < M; ++i) {
+        freq[compounds[i]]++;
+    }
+
+    int max_similarity = 0;
+    
+    // Calculate max similarity for the first window
+    for (int i = 0; i < 16; ++i) {
+        int similarity = freq[i] + (i > 0 ? freq[i - 1] : 0) + (i < 15 ? freq[i + 1] : 0);
+        max_similarity = max(max_similarity, similarity);
+    }
+
+    // Slide the window from the second position to the last
+	int s=0;
+    for (int i = M; i <N; ++i) {
+        // Remove the effect of the element going out of the window
+        freq[compounds[s]]--;
+        
+        // Add the effect of the new element coming into the window
+        freq[compounds[i ]]++;
+        
+        // Calculate the max similarity in the current window
+        int current_similarity = 0;
+        for (int j = 0; j < 16; ++j) {
+            int similarity = freq[j] + (j > 0 ? freq[j - 1] : 0) + (j < 15 ? freq[j + 1] : 0);
+            current_similarity = max(current_similarity, similarity);
+        }
+
+        // Update the maximum similarity found
+        max_similarity = max(max_similarity, current_similarity);
+			s++;
+    }
+
+    // Output the maximum similarity found
+    cout << max_similarity << endl;
+
+    return 0;
+}
