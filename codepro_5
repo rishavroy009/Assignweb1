@@ -1,0 +1,94 @@
+#include <bits/stdc++.h>
+#include <iostream>
+using namespace std;
+#define MAXN (100)
+int N;
+char mp[MAXN + 10][MAXN + 10];
+
+char ans;//구매자 이름 Buyer's name
+int areacnt;//구매자 영역 개수 Number of buyer's area
+
+int rows[4]= {0,0,-1,1};
+int cols[4]= {1,-1,0,0};
+
+void InputData() {
+	cin >> N;
+	for (int h = 0; h < N; h++) {
+		cin >> mp[h];
+	}
+}
+
+int check(vector<vector<bool>>& visited, int i,int j,char ch){
+	
+	visited[i][j]=true;
+	int count=1;
+	
+	for(int k=0;k<4;k++){
+		int next_r=i+rows[k];
+		int next_c=j+cols[k];
+		if(next_r>=0 && next_r<N && next_c>=0 && next_c<N && mp[next_r][next_c]==ch && visited[next_r][next_c]==false){
+			count+=check(visited,next_r,next_c,ch);
+		}
+	}
+	return count;
+	
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	cout.tie(NULL);
+
+	InputData();// 입력받는 부분 Input
+int zone_r=0;
+	int zone_g=0;
+	int zone_b=0;
+	int grid_r=0;
+	int grid_g=0;
+	int grid_b=0;
+	vector<vector<bool>> vis_r(N,vector<bool>(N,false));
+	vector<vector<bool>> vis_g(N,vector<bool>(N,false));
+	vector<vector<bool>> vis_b(N,vector<bool>(N,false));
+	for(int i=0;i<N;i++){
+		for(int j=0;j<N;j++){
+			if(mp[i][j]=='R'&& vis_r[i][j]==false){
+				zone_r++;
+				int cnt= check(vis_r,i,j,'R');
+				grid_r+=cnt;
+			}
+		}
+	}
+	for(int i=0;i<N;i++){
+		for(int j=0;j<N;j++){
+			if(mp[i][j]=='G'&& vis_g[i][j]==false){
+				zone_g++;
+				int cnt= check(vis_g,i,j,'G');
+				grid_g+=cnt;
+			}
+		}
+	}
+	for(int i=0;i<N;i++){
+		for(int j=0;j<N;j++){
+			if(mp[i][j]=='B'&& vis_b[i][j]==false){
+				zone_b++;
+				int cnt= check(vis_b,i,j,'B');
+				grid_b+=cnt;
+			}
+		}
+	}
+	
+	
+	vector<pair<int,pair<int,char>>> v(3);
+
+	v[0]={zone_r,{grid_r,'R'}};
+	v[1]={zone_g,{grid_g,'G'}};
+	v[2]={zone_b,{grid_b,'B'}};
+	sort(v.begin(),v.end());
+
+cout<<v[2].second.second<<" "<<v[2].first<<"\n";
+	
+	
+	
+
+	return 0;
+}
