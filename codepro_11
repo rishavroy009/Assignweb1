@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+unordered_map<int, int> mp;  // To store precomputed factor counts
+int S, E1, E2;
+
+
+// Precompute the number of factors for each number
+int count_factor(int num) {
+    int count = 0;
+    for (int i = 1; i * i <= num; i++) {
+        if (num % i == 0) {
+            count += (i * i == num) ? 1 : 2; // Avoid double-counting for perfect squares
+        }
+    }
+    return count;
+}
+
+// BFS to find the shortest path
+int bfs(int source, int dest) {
+    queue<pair<int, int>> q;
+    vector<bool> vis(10000, false);
+
+    q.push({source, 0});
+    vis[source] = true;
+
+    while (!q.empty()) {
+        auto [number, dist] = q.front();
+        q.pop();
+
+        // If we reached the destination, return the distance
+        if (number == dest) return dist;
+
+        // Generate neighbors by modifying each digit
+        string num_str = to_string(number);
+        for (int i = 0; i < 4; i++) {
+            char original_char = num_str[i];
+            for (char d = '0'; d <= '9'; d++) {
+                if (d == original_char) continue; // Skip if digit remains the same
+
+                num_str[i] = d;
+                int next_num = stoi(num_str);
+
+                // Check if the new number is valid
+                if (next_num >= 1000 && next_num <= 9999 && !vis[next_num] &&
+                    abs(mp[next_num] - mp[number]) < 2) {
+                    q.push({next_num, dist + 1});
+                    vis[next_num] = true;
+                }
+            }
+            num_str[i] = original_char; // Restore the original digit
+        }
+    }
+    return -1; // This should never happen as per problem constraints
+}
+
+int main() {
+    cin >> S >> E1 >> E2;
+
+    // Precompute factor counts for all 4-digit numbers
+    for (int i = 1000; i <= 9999; i++) {
+        mp[i] = count_factor(i);
+    }
+
+    // Calculate the shortest paths using BFS
+    int ans1 = bfs(S, E1);
+    int ans2 = bfs(S, E2);
+
+    // Output results
+    cout << ans1 << '\n';
+    cout << ans2 << '\n';
+
+    return 0;
+}
