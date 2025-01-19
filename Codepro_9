@@ -1,0 +1,107 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <climits>
+using namespace std;
+
+// Calculate Manhattan distance between two points
+int getDistance(pair<int, int> a, pair<int, int> b) {
+    return abs(a.first - b.first) + abs(a.second - b.second);
+}
+
+// Calculate fuel cost for a specific route
+int calculateRouteCost(const vector<int>& route, const vector<pair<int, int>>& points, pair<int, int> office) {
+    if (route.empty()) return 0;
+    
+    int cost = 0;
+    pair<int, int> current = office;
+    int parcels = 0;
+    
+    // Calculate cost for each segment of the route
+    for (int idx : route) {
+        int dist = getDistance(current, points[idx]);
+        cost += dist * (1 + parcels);
+        parcels++;
+        current = points[idx];
+    }
+    
+    // Add cost of returning to office
+    cost += getDistance(current, office) * (1 + parcels);
+    
+    return cost;
+}
+
+// Try all possible permutations for given indices
+int tryPermutations(vector<int>& indices, const vector<pair<int, int>>& points, pair<int, int> office) {
+    if (indices.empty()) return 0;
+    
+    int minCost = INT_MAX;
+	int cost = calculateRouteCost(indices, points, office);
+        minCost = min(minCost, cost);
+     while (next_permutation(indices.begin(), indices.end())) {
+        int cost = calculateRouteCost(indices, points, office);
+        minCost = min(minCost, cost);
+    }
+    
+    return minCost;
+}
+
+int findMinimumFuel(const vector<pair<int, int>>& points, pair<int, int> officeA, pair<int, int> officeB) {
+    int n = points.size();
+    int minFuel = INT_MAX;
+    vector<int> indices(n);
+    for (int i = 0; i < n; i++) {
+        indices[i] = i;
+    }
+    
+    // Try all possible subsets for truck A
+    for (int mask = 0; mask < (1 << n); mask++) {
+        vector<int> routeA, routeB;
+        
+        // Split points between trucks
+        for (int i = 0; i < n; i++) {
+            if (mask & (1 << i)) {
+                routeA.push_back(i);
+            } else {
+                routeB.push_back(i);
+            }
+        }
+        
+        // Sort the routes to prepare for permutation
+        
+        
+        // Try all permutations for both routes
+        int costA = tryPermutations(routeA, points, officeA);
+        int costB = tryPermutations(routeB, points, officeB);
+        
+        minFuel = min(minFuel, costA + costB);
+    }
+    
+    return minFuel;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int N;
+    cin >> N;
+    
+    int x, y;
+    // Read office locations
+    cin >> x >> y;
+    pair<int, int> officeA = {x, y};
+    cin >> x >> y;
+    pair<int, int> officeB = {x, y};
+    
+    // Read parcel collection points
+    vector<pair<int, int>> points(N);
+    for (int i = 0; i < N; i++) {
+        cin >> x >> y;
+        points[i] = {x, y};
+    }
+    
+    cout << findMinimumFuel(points, officeA, officeB) << endl;
+    
+    return 0;
+}
