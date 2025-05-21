@@ -1,77 +1,61 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
 using namespace std;
 
-int dist_calc(pair<int,int> a,pair<int,int> b){
-	return abs(a.first-b.first)+abs(a.second-b.second);
-}
-int calc_cost(vector<int> indices,vector<pair<int,int>> points,pair<int,int> office){
+map<int, vector<int>> teams;
 
-	int cost=dist_calc(office,points[indices[0]]);
-	int parcels=1;
-	int i=0;
-	
-	while(i<indices.size()-1){
-		int dist=dist_calc(points[indices[i]],points[indices[i+1]]);
-		int moving_cost=dist*(1+parcels);
-		cost+=moving_cost;
-		parcels++;
-		i++;
-	}
-	cost+=dist_calc(points[indices[i]],office)*(1+parcels);
-	return cost;
-	
-	
-	
-}
-
-int perm_cost(vector<int>& indices,vector<pair<int,int>> points,pair<int,int> office){
-	if(indices.size()==0)return 0;
-	int final_cost=calc_cost(indices,points,office);
-	while(next_permutation(indices.begin(),indices.end())){
-		int current_cost=calc_cost(indices,points,office);
-		final_cost=min(final_cost,current_cost);
-	}
-	return final_cost;
-	
-}
-int findmincost(pair<int,int> off1,pair<int,int> off2,vector<pair<int,int>> points,int n){
-	int ans=INT_MAX;
-	int moves=1<<n;
-	for(int i=0;i<moves;i++){
-		int temp_cost=INT_MAX;
-		vector<int> first_off;
-		vector<int> second_off;
-		for(int j=0;j<n;j++){
-			if(i & (1<<j))first_off.push_back(j);
-			else second_off.push_back(j);
-		}
-		
-		int costA=perm_cost(first_off,points,off1);
-		int costB=perm_cost(second_off,points,off2);
-		ans=min(ans,costA+costB);
-	}
-	return ans;
-	
+// Simulates the fight between team x and y (x attacks first)
+int simulateFight(vector<int> a, vector<int> b) {
+    int turn = 0; // 0 = a's turn, 1 = b's turn
+    while (!a.empty() && !b.empty()) {
+        if (turn == 0) {
+            int strength = a[0];
+            a.erase(a.begin());
+            int kill = min(strength, (int)b.size());
+            b.erase(b.begin(), b.begin() + kill);
+        } else {
+            int strength = b[0];
+            b.erase(b.begin());
+            int kill = min(strength, (int)a.size());
+            a.erase(a.begin(), a.begin() + kill);
+        }
+        turn ^= 1;
+    }
+    return b.empty() ? 1 : 2;
 }
 
-int main(){
-	int n;
-	cin>>n;
-	pair<int,int> off1;
-	pair<int,int> off2;
-	cin>>off1.first;
-	cin>>off1.second;
-	cin>>off2.first;
-	cin>>off2.second;
-	vector<pair<int,int>> points;
-	for(int i=0;i<n;i++){
-		int x;
-		int y;
-		cin>>x;
-		cin>>y;
-		points.push_back({x,y});
-		
-	}
-	
-	cout<<findmincost(off1,off2,points,n)<<endl;
+int main() {
+    int n, t, q;
+    cin >> n >> t >> q;
+
+    for (int i = 0; i < n; ++i) {
+        int strength, team;
+        cin >> strength >> team;
+        teams[team].push_back(strength);
+    }
+
+    // Sort each team's fighters in descending order
+    for (auto& kv : teams)
+        sort(kv.second.rbegin(), kv.second.rend());
+
+    for (int i = 0; i < q; ++i) {
+        int type;
+        cin >> type;
+        if (type == 1) {
+            int p, x;
+            cin >> p >> x;
+            // Insert in descending order
+            auto& vec = teams[x];
+            vec.insert(lower_bound(vec.begin(), vec.end(), p, greater<int>()), p);
+        } else {
+            int x, y;
+            cin >> x >> y;
+            int winner = simulateFight(teams[x], teams[y]);
+            cout << (winner == 1 ? x : y) << endl;
+        }
+    }
+
+    return 0;
 }
