@@ -1,0 +1,66 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+int n, m;
+vector<string> matrix;
+vector<vector<bool>> visited;
+
+// Directions: up, down, left, right
+int dx[] = {-1, 1, 0, 0};
+int dy[] = {0, 0, -1, 1};
+
+bool isValid(int x, int y) {
+    return (x >= 0 && x < n && y >= 0 && y < m &&
+            matrix[x][y] != 'X' && !visited[x][y]);
+}
+
+int dfs(int x, int y, int decisions) {
+    if (matrix[x][y] == '*') return decisions;
+
+    visited[x][y] = true;
+
+    vector<pair<int, int>> choices;
+
+    for (int d = 0; d < 4; ++d) {
+        int nx = x + dx[d];
+        int ny = y + dy[d];
+
+        if (isValid(nx, ny))
+            choices.push_back({nx, ny});
+    }
+
+    if (choices.size() > 1) decisions++;
+
+    for (auto [nx, ny] : choices) {
+        int res = dfs(nx, ny, decisions);
+        if (res != -1) return res;
+    }
+
+    return -1; // Not found in this path
+}
+
+void countLuck(vector<string>& matrixInput, int k) {
+    matrix = matrixInput;
+    n = matrix.size();
+    m = matrix[0].size();
+    visited.assign(n, vector<bool>(m, false));
+
+    int startX, startY;
+
+    // Find 'M' (start position)
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < m; ++j)
+            if (matrix[i][j] == 'M') {
+                startX = i;
+                startY = j;
+            }
+
+    int result = dfs(startX, startY, 0);
+
+    if (result == k)
+        cout << "Impressed" << endl;
+    else
+        cout << "Oops!" << endl;
+}
