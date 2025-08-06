@@ -1,66 +1,87 @@
-#include <iostream>
-#include <vector>
-#include <string>
+#include <bits/stdc++.h>
 using namespace std;
 
-int n, m;
-vector<string> matrix;
-vector<vector<bool>> visited;
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
 
-// Directions: up, down, left, right
-int dx[] = {-1, 1, 0, 0};
-int dy[] = {0, 0, -1, 1};
+    int n, k, q;
+    cin >> n >> k >> q;
 
-bool isValid(int x, int y) {
-    return (x >= 0 && x < n && y >= 0 && y < m &&
-            matrix[x][y] != 'X' && !visited[x][y]);
-}
+    vector<vector<int>> teams(k + 1);  // team numbers are 1-based
 
-int dfs(int x, int y, int decisions) {
-    if (matrix[x][y] == '*') return decisions;
-
-    visited[x][y] = true;
-
-    vector<pair<int, int>> choices;
-
-    for (int d = 0; d < 4; ++d) {
-        int nx = x + dx[d];
-        int ny = y + dy[d];
-
-        if (isValid(nx, ny))
-            choices.push_back({nx, ny});
+    // Initial fighters
+    for (int i = 0; i < n; ++i) {
+        int strength, team;
+        cin >> strength >> team;
+        teams[team].push_back(strength);
     }
 
-    if (choices.size() > 1) decisions++;
-
-    for (auto [nx, ny] : choices) {
-        int res = dfs(nx, ny, decisions);
-        if (res != -1) return res;
+    // Sort each team once
+    for (int i = 1; i <= k; ++i) {
+        sort(teams[i].begin(), teams[i].end());
     }
 
-    return -1; // Not found in this path
-}
+    // Handle queries
+    while (q--) {
+        int type;
+        cin >> type;
 
-void countLuck(vector<string>& matrixInput, int k) {
-    matrix = matrixInput;
-    n = matrix.size();
-    m = matrix[0].size();
-    visited.assign(n, vector<bool>(m, false));
+        if (type == 1) {
+            int team, strength;
+            cin >> team >> strength;
+            // Insert while keeping sorted order
+            auto& t = teams[team];
+            auto it = upper_bound(t.begin(), t.end(), strength);
+            t.insert(it, strength);
+        } else {
+            int x, y;
+            cin >> x >> y;
 
-    int startX, startY;
+            // Copy and reverse both teams (to access strongest first)
+            vector<int> a = teams[x], b = teams[y];
+            int na = a.size(), nb = b.size();
 
-    // Find 'M' (start position)
-    for (int i = 0; i < n; ++i)
-        for (int j = 0; j < m; ++j)
-            if (matrix[i][j] == 'M') {
-                startX = i;
-                startY = j;
+            vector<int> A(na), B(nb);
+            for (int i = 0; i < na; ++i) A[i] = a[na - 1 - i];
+            for (int i = 0; i < nb; ++i) B[i] = b[nb - 1 - i];
+
+            // Calculate total strength
+            long long sumA = 0, sumB = 0;
+            for (int i = 0; i < na; ++i) sumA += A[i];
+            for (int i = 0; i < nb; ++i) sumB += B[i];
+
+            int i = 0, j = 0;
+            bool turn = true;  // true: A's turn, false: B's turn
+
+            while (true) {
+                if (turn) {
+                    if (sumA >= sumB) {
+                        cout << x << "\n";
+                        break;
+                    }
+                    if (i >= na) {
+                        cout << y << "\n";
+                        break;
+                    }
+                    int s = A[i++];
+                    while (s-- && j < nb) sumB -= B[j++];
+                } else {
+                    if (sumB >= sumA) {
+                        cout << y << "\n";
+                        break;
+                    }
+                    if (j >= nb) {
+                        cout << x << "\n";
+                        break;
+                    }
+                    int s = B[j++];
+                    while (s-- && i < na) sumA -= A[i++];
+                }
+                turn = !turn;
             }
+        }
+    }
 
-    int result = dfs(startX, startY, 0);
-
-    if (result == k)
-        cout << "Impressed" << endl;
-    else
-        cout << "Oops!" << endl;
+    return 0;
 }
