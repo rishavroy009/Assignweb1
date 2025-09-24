@@ -1,87 +1,28 @@
-#include <bits/stdc++.h>
+#include<bits/stdc++.h>
 using namespace std;
-
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-
-    int n, k, q;
-    cin >> n >> k >> q;
-
-    vector<vector<int>> teams(k + 1);  // team numbers are 1-based
-
-    // Initial fighters
-    for (int i = 0; i < n; ++i) {
-        int strength, team;
-        cin >> strength >> team;
-        teams[team].push_back(strength);
-    }
-
-    // Sort each team once
-    for (int i = 1; i <= k; ++i) {
-        sort(teams[i].begin(), teams[i].end());
-    }
-
-    // Handle queries
-    while (q--) {
-        int type;
-        cin >> type;
-
-        if (type == 1) {
-            int team, strength;
-            cin >> team >> strength;
-            // Insert while keeping sorted order
-            auto& t = teams[team];
-            auto it = upper_bound(t.begin(), t.end(), strength);
-            t.insert(it, strength);
-        } else {
-            int x, y;
-            cin >> x >> y;
-
-            // Copy and reverse both teams (to access strongest first)
-            vector<int> a = teams[x], b = teams[y];
-            int na = a.size(), nb = b.size();
-
-            vector<int> A(na), B(nb);
-            for (int i = 0; i < na; ++i) A[i] = a[na - 1 - i];
-            for (int i = 0; i < nb; ++i) B[i] = b[nb - 1 - i];
-
-            // Calculate total strength
-            long long sumA = 0, sumB = 0;
-            for (int i = 0; i < na; ++i) sumA += A[i];
-            for (int i = 0; i < nb; ++i) sumB += B[i];
-
-            int i = 0, j = 0;
-            bool turn = true;  // true: A's turn, false: B's turn
-
-            while (true) {
-                if (turn) {
-                    if (sumA >= sumB) {
-                        cout << x << "\n";
-                        break;
-                    }
-                    if (i >= na) {
-                        cout << y << "\n";
-                        break;
-                    }
-                    int s = A[i++];
-                    while (s-- && j < nb) sumB -= B[j++];
-                } else {
-                    if (sumB >= sumA) {
-                        cout << y << "\n";
-                        break;
-                    }
-                    if (j >= nb) {
-                        cout << x << "\n";
-                        break;
-                    }
-                    int s = B[j++];
-                    while (s-- && i < na) sumA -= A[i++];
-                }
-                turn = !turn;
-            }
+int main(){
+    long long n;int k;cin>>n>>k;
+    vector<long long>a(k);
+    for(int i=0;i<k;i++)cin>>a[i];
+    sort(a.begin(),a.end());
+    queue<long long>q;
+    unordered_map<long long,long long>p;
+    q.push(1);p[1]=0;
+    while(!q.empty()&&!p.count(n)){
+        long long cur=q.front();q.pop();
+        for(auto x:a){
+            if(cur>n/x)continue;
+            long long nxt=cur*x;
+            if(n%nxt)continue;
+            if(!p.count(nxt)){p[nxt]=cur;q.push(nxt);}
         }
     }
-
-    return 0;
+    if(!p.count(n)){cout<<-1;return 0;}
+    vector<long long>path;
+    for(long long v=n;v;v=p[v])path.push_back(v);
+    reverse(path.begin(),path.end());
+    for(int i=0;i<path.size();i++){
+        if(i)cout<<" ";
+        cout<<path[i];
+    }
 }
